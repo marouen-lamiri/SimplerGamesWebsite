@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimplerGames</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Simpler Games</div>
+            <div class="links">
+                <a href="index.html">Home</a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Easy to play. Impossible not to love.</h1>
+        <p>Crafting welcoming, delightful and refreshingly uncomplicated Games.</p>
+    </section>
+
+    <section class="section">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; padding: 0 2rem;">
+            <div>
+                <span class="game-category">Latest Releases</span>
+                <h2 style="font-size: 2.5rem; font-weight: 800;">Our Featured Games</h2>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Scroll to explore &rarr;</p>
+        </div>
+
+        <div class="games-scroll-container">
+            <div class="game-card">
+                <img src="Images/NewBreakItIcon.png" alt="BreakIt" class="game-img">
+                <div class="game-info">
+                    <span class="game-category">Casual Game</span>
+                    <h3>BreakIt!</h3>
+                    <p>A calming destruction game where you break objects to melt away your stress. Peaceful vibes. Satisfying smashes. Total relaxation in a chaotic world.</p>
+                    <a href="https://play.google.com/store/apps/details?id=com.ML93.BreakIt" class="btn btn-small">View Details</a>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Learning_Curve_--_Coming_Soon_Placeholder_%28cropped%29.png" alt="Upcoming Title" class="game-img">
+                <div class="game-info">
+                    <span class="game-category">Puzzle Game</span>
+                    <h3>Electrify!</h3>
+                    <p>A puzzle game where players have to connect power to cities in increasingly difficult situation.</p>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Learning_Curve_--_Coming_Soon_Placeholder_%28cropped%29.png" alt="Upcoming Title" class="game-img">
+                <div class="game-info">
+                    <span class="game-category">Casual Game</span>
+                    <h3>Juggler - World Cup 2026</h3>
+                    <p>A juggling game where players need to keep the ball in the air for as long as possible.</p>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Learning_Curve_--_Coming_Soon_Placeholder_%28cropped%29.png" alt="Upcoming Title" class="game-img">
+                <div class="game-info">
+                    <span class="game-category">Digital Twin</span>
+                    <h3>New York City - Digital Twin</h3>
+                    <p>Coming Soon.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="experience-section">
+        <h4>Our Team has Experience From Industry Giants</h4>
+        <div class="logo-cloud">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/68/Avatar_Ludia_Citron.png" alt="Ludia" class="logo-item">
+            
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Behaviour_Interactive_logo.svg" alt="Behaviour Interactive" class="logo-item">
+            
+            <img src="https://upload.wikimedia.org/wikipedia/commons/1/11/CAE_Inc_Logo.svg" alt="CAE" class="logo-item">
+            
+            <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Unity_Technologies_logo.svg" alt="Unity" class="logo-item">
+            
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/9d/Capgemini_201x_logo.svg" alt="Capgemini" class="logo-item">
+        </div>
+    </section>
+
+    <section class="section" id="contact">
+        <div class="contact-split">
+            <div class="contact-info">
+                <h2>Let’s build something <br>legendary.</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 3rem; font-size: 1.2rem;">
+                    Ready to turbocharge your experience? Send us a message.
+                </p>
+            </div>
+
+            <div class="contact-form-card">
+                <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label style="font-size: 0.8rem; font-weight: 600;">Name</label>
+                        <input type="text" name="name" placeholder="John Doe" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label style="font-size: 0.8rem; font-weight: 600;">Email</label>
+                    <input type="email" name="email" placeholder="john.doe@gmail.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-size: 0.8rem; font-weight: 600;">Message</label>
+                        <textarea rows="4" name="message" placeholder="How can we help?" required></textarea>
+                    </div>
+                    <button type="submit" id="submit-btn" class="btn" style="width: 100%; border: none; cursor: pointer; margin-top: 1rem;">
+                        Send Message</button>
+                </form>
+                <div id="status"></div>
+
+                <script type="text/javascript">
+                    (function() {
+                        // REPLACE WITH YOUR PUBLIC KEY
+                        emailjs.init("0YP7HyGyaXE_ytqMY");
+                    })();
+
+                    const contactForm = document.getElementById('contact-form');
+                    const submitBtn = document.getElementById('submit-btn');
+                    const statusMsg = document.getElementById('status');
+
+                    contactForm.addEventListener('submit', function(event) {
+                        event.preventDefault();
+
+                        // Visual feedback
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = 'Sending...';
+                        statusMsg.innerText = '';
+                        statusMsg.className = '';
+
+                        // These IDs must match your EmailJS Dashboard settings
+                        emailjs.sendForm('service_rbmcc0s', 'template_qmbdero', this)
+                            .then(() => {
+                                statusMsg.classList.add('success-msg');
+                                statusMsg.innerText = 'Message sent successfully! ✅';
+                                contactForm.reset();
+                            })
+                            .catch((error) => {
+                                statusMsg.classList.add('error-msg');
+                                statusMsg.innerText = 'Something went wrong. Please try again.';
+                                console.error('EmailJS Error:', error);
+                            })
+                            .finally(() => {
+                                submitBtn.disabled = false;
+                                submitBtn.innerText = 'Send Message';
+                            });
+                    });
+                </script>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 SimplerGames. <a href="privacy.html" style="color: inherit; margin-left:15px;">Privacy Policy</a></p>
+    </footer>
+</body>
+</html>

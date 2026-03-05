@@ -1,0 +1,382 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
+:root {
+    --bg-dark: #06080f;          /* Deepest navy/black */
+    --bg-card: #111420;          /* Slightly lighter surface */
+    --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --border: rgba(255, 255, 255, 0.1);
+    --glass: rgba(11, 15, 25, 0.7);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Subtle background glow effect like UserWise */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1000px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    z-index: -1;
+}
+
+header {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-left: 2rem;
+    transition: color 0.3s;
+}
+
+nav a:hover { color: #fff; }
+
+/* Hero Section */
+.hero {
+    max-width: 1200px;
+    margin: 6rem auto;
+    padding: 0 2rem;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    letter-spacing: -2px;
+}
+
+.hero p {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto 2.5rem auto;
+}
+
+.btn {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    border-radius: 99px; /* Pill shape */
+    background: var(--accent-gradient);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+    transition: transform 0.3s;
+}
+
+.btn:hover { transform: translateY(-3px); }
+
+/* Product Screenshot Box */
+.product-preview {
+    margin-top: 4rem;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+}
+
+.product-preview img {
+    width: 100%;
+    border-radius: 16px;
+    display: block;
+}
+
+/* Feature Grid */
+.features {
+    max-width: 1200px;
+    margin: 8rem auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 2.5rem;
+    border-radius: 24px;
+    transition: background 0.3s;
+}
+
+.card:hover { background: #1a1e2e; }
+
+.card h3 { margin-bottom: 1rem; font-size: 1.5rem; }
+.card p { color: var(--text-secondary); }
+
+/* Form Styles */
+.form-container {
+    max-width: 600px;
+    margin: 4rem auto;
+    background: var(--bg-card);
+    padding: 3rem;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+}
+
+input, textarea {
+    width: 100%;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1.5rem;
+    background: #06080f;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: white;
+    font-family: inherit;
+}
+
+footer {
+    padding: 4rem 2rem;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .hero h1 { font-size: 2.5rem; }
+}
+
+/* Increased spacing for the horizontal scroller */
+.games-scroll-container {
+    display: flex;
+    gap: 3.5rem; /* Increased gap between cards */
+    padding: 3rem 2rem; /* More space around the container */
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge and Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Enhanced Game Card Spacing */
+.game-card {
+    flex: 0 0 450px; /* Widened the card slightly for better proportions */
+    scroll-snap-align: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 32px; /* Smoother, larger corner radius */
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.game-info {
+    padding: 2.5rem; /* Increased internal padding significantly */
+}
+
+.game-info h3 {
+    margin-bottom: 1.25rem; /* More space below the title */
+    font-size: 1.75rem;
+    letter-spacing: -0.5px;
+}
+
+.game-info p {
+    color: var(--text-secondary);
+    line-height: 1.8; /* Increased line spacing for readability */
+    margin-bottom: 2.5rem; /* More space before the button */
+}
+
+/* Subtle image spacing */
+.game-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.game-card:hover .game-img {
+    transform: scale(1.05); /* Zoom effect on hover */
+}
+
+/* Contact Section Split Layout */
+/* Increased Section Spacing */
+.section {
+    max-width: 1800px;
+    margin: 8rem auto; /* Increased from 6rem to 8rem for more "breath" */
+    padding: 0 2rem;
+}
+
+/* Specific Contact Spacing */
+#contact {
+    /*padding-top: 10rem;    /* Extra space from the section above */
+    padding-bottom: 10rem; /* Extra space before the footer */
+}
+
+.contact-split {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr; /* Adjusted for better balance */
+    gap: 6rem; /* Increased gap between info and form */
+    align-items: start;
+}
+
+.contact-info h2 {
+    font-size: 3.5rem;
+    line-height: 1.2;
+    margin-bottom: 2rem; /* Spacing below the main heading */
+}
+
+.contact-info p {
+    margin-bottom: 4rem; /* Spacing before the info items start */
+}
+
+.info-item {
+    margin-bottom: 2.5rem; /* More space between Email, Location, etc. */
+}
+
+/* Form Spacing */
+.contact-form-card label {
+    display: block;
+    margin-bottom: 0.75rem; /* Space between label and its input */
+    color: var(--text-primary);
+}
+
+.contact-form-card input, 
+.contact-form-card textarea {
+    margin-bottom: 2rem; /* Increased spacing between form fields */
+}
+
+/* Responsive adjustment */
+@media (max-width: 900px) {
+    #contact {
+        padding-top: 5rem;
+        padding-bottom: 5rem;
+    }
+    .contact-split {
+        gap: 4rem;
+    }
+}
+
+/* Experience Section */
+.experience-section {
+    padding: 4rem 2rem;
+    background: rgba(255, 255, 255, 0.02); /* Very subtle background shift */
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+}
+
+.experience-section h4 {
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    margin-bottom: 3rem;
+}
+
+.logo-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.logo-item {
+    height: 35px;            /* Controlled height for uniformity */
+    max-width: 160px;        /* Prevents wide logos from dominating */
+    object-fit: contain;     /* Keeps logos from stretching */
+    filter: grayscale(1) brightness(2); /* Makes them look white/gray on dark bg */
+    opacity: 0.5;
+    transition: all 0.4s ease;
+}
+
+.logo-item:hover {
+    filter: grayscale(0) brightness(1); /* Returns to original color on hover */
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Responsive logos */
+@media (max-width: 768px) {
+    .logo-cloud {
+        gap: 2rem;
+    }
+    .logo-item {
+        height: 30px;
+    }
+}
+
+/* Status Message Styling */
+#status {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.success-msg {
+    background: rgba(34, 197, 94, 0.1);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.error-msg {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Button Loading State */
+#submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    background: var(--text-secondary);
+}
