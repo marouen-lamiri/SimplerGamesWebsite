@@ -380,3 +380,94 @@ footer {
     transform: none;
     background: var(--text-secondary);
 }
+
+/* --- Mobile Responsive Updates --- */
+
+@media (max-width: 768px) {
+    /* Hero Section Adjustments */
+    .hero {
+        margin: 4rem auto; /* Reduce vertical spacing */
+    }
+
+    .hero h1 {
+        font-size: 2.5rem; /* Scale down the massive heading */
+        letter-spacing: -1px;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        padding: 0 1rem;
+    }
+
+    /* Navigation - Optional: Stack links or reduce size */
+    nav {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+
+    nav a {
+        margin-left: 0;
+        margin: 0 0.75rem;
+    }
+
+    /* Game Scroller - Ensure cards don't overflow small screens */
+    .game-card {
+        flex: 0 0 85vw; /* Cards now take up 85% of the viewport width */
+    }
+
+    .game-img {
+        height: 200px; /* Shorter images for mobile */
+    }
+
+    .game-info {
+        padding: 1.5rem;
+    }
+
+    /* Featured Games Header */
+    .section div[style*="flex-end"] {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem;
+    }
+
+    /* Contact Section - Stack the layout */
+    .contact-split {
+        grid-template-columns: 1fr; /* Change from 2 columns to 1 */
+        gap: 3rem;
+        text-align: center;
+    }
+
+    .contact-info h2 {
+        font-size: 2.2rem;
+    }
+
+    .contact-info p {
+        margin-bottom: 2rem;
+    }
+
+    /* Experience Section (Logo Cloud) */
+    .logo-cloud {
+        gap: 2rem; /* Tighten the gap for logos */
+    }
+
+    .logo-item {
+        height: 28px; /* Slightly smaller logos */
+    }
+}
+
+/* Extra Small Devices (Phones under 480px) */
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .game-card {
+        flex: 0 0 92vw; /* Nearly full width */
+    }
+
+    .btn {
+        width: 100%; /* Make buttons full-width for easier tapping */
+        text-align: center;
+    }
+}
