@@ -8,7 +8,17 @@ from jobspy import scrape_jobs
 
 # --- CONFIGURATION ---
 # Added Architect/Staff to search and skills
-SEARCH_QUERY = "(Senior OR Lead OR Staff OR Architect) Unity Developer"
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime, timedelta, timezone
+import pandas as pd
+import feedparser
+from jobspy import scrape_jobs
+
+# --- CONFIGURATION ---
+SEARCH_QUERY = "Unity Developer"
 MY_SKILLS = [
     "C#", "Unity", "Unreal", "Git", "URP", "HDRP", "Android", "AR", "VR", "XR"
     "Perforce", "C++", "DOTS", "Addressables", "iOS", ".Net", "JavaScript"
@@ -18,110 +28,95 @@ MY_SKILLS = [
     "PostgreSQL", "Software measurement", "Software management", "Unit Testing",
     "Machine Learning", "UI Toolkit", "Digital Twins"
 ]
-
-IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing"]
+MIN_SALARY = 100000 
+IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing", "Recruitment"]
 TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate"]
 
+def extract_salary(text):
+    if not text: return None
+    patterns = [r'\$(\d{1,3}(?:,\d{3})+)', r'\$(\d{2,3})k', r'(\d{2,3})k', r'\$(\d{5,6})']
+    found_values = []
+    for pattern in patterns:
+        matches = re.findall(pattern, str(text), re.IGNORECASE)
+        for m in matches:
+            val = int(m.replace(',', ''))
+            if val < 1000: val *= 1000
+            found_values.append(val)
+    return max(found_values) if found_values else None
+
 def analyze_job(title, company, description):
-    title_clean = str(title).lower()
-    company_clean = str(company).lower()
-    desc_clean = str(description).lower()
-
+    t_clean, c_clean, d_clean = str(title).lower(), str(company).lower(), str(description).lower()
     for item in IGNORE_LIST:
-        if item.lower() in company_clean: return -1, []
+        if item.lower() in c_clean: return -1, [], None
     for item in TITLE_BLACKLIST:
-        if item.lower() in title_clean: return -1, []
-
-    text = f"{title_clean} {desc_clean}"
-    found = [skill for skill in MY_SKILLS if skill.lower() in text]
-    score = round((len(found) / len(MY_SKILLS)) * 100) if MY_SKILLS else 0
-    return score, found
-
-def get_days_ago(date_posted):
-    """Calculates how many days ago the job was posted."""
-    if not date_posted:
-        return "New"
-    try:
-        now = datetime.now(timezone.utc)
-        # Ensure date_posted is a datetime object
-        posted = pd.to_datetime(date_posted).tz_localize('UTC') if not hasattr(date_posted, 'tzinfo') else pd.to_datetime(date_posted)
-        delta = (now - posted).days
-        return f"{delta}d ago" if delta > 0 else "Today"
-    except:
-        return "Recent"
-
-def send_email(html_content):
-    sender = os.getenv("EMAIL_SENDER")
-    receiver = os.getenv("EMAIL_RECEIVER")
-    password = os.getenv("EMAIL_PASSWORD")
+        if item.lower() in t_clean: return -1, [], None
     
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"🚀 Unity Lead/Architect Report: {datetime.now().strftime('%b %d')}"
-    msg["From"] = sender
-    msg["To"] = receiver
-    msg.attach(MIMEText(html_content, "html"))
+    sal = extract_salary(d_clean)
+    if sal and sal < MIN_SALARY: return -1, [], None
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(sender, password)
-        server.sendmail(sender, receiver, msg.as_string())
+    text = f"{t_clean} {d_clean}"
+    found = [s for s in MY_SKILLS if s.lower() in text]
+    score = round((len(found) / len(MY_SKILLS)) * 100)
+    return score, found, sal
 
 def run_agent():
+    # 1. Broad Scrape (including RemoteRocketship targets via Google)
+    # We add "remoterocketship" to the search to catch their indexed pages
     jobs = scrape_jobs(
         site_name=["linkedin", "indeed", "google"],
-        search_term=SEARCH_QUERY,
+        search_term=f"{SEARCH_QUERY} (site:remoterocketship.com OR remote)",
         location="Remote",
-        results_wanted=25,
-        hours_old=48, # Expanded to 48h to ensure no weekend drops are missed
+        results_wanted=40,
+        hours_old=48,
         description_formatting="markdown"
     )
 
-    processed_listings = []
+    processed = []
     if not jobs.empty:
         for _, row in jobs.iterrows():
-            score, found_skills = analyze_job(row['title'], row['company'], row.get('description', ''))
-            if score >= 15: 
-                days_ago = get_days_ago(row.get('date_posted'))
-                processed_listings.append({**row, "score": score, "skills": found_skills, "days_ago": days_ago})
-        
-        processed_listings.sort(key=lambda x: x['score'], reverse=True)
+            score, skills, sal = analyze_job(row['title'], row['company'], row.get('description', ''))
+            if score >= 15:
+                processed.append({
+                    "title": row['title'], "company": row['company'], "url": row['job_url'],
+                    "score": score, "skills": skills, "salary": sal,
+                    "source": "Aggregator"
+                })
 
-    # --- HTML GENERATION ---
-    job_cards_html = ""
-    for job in processed_listings:
-        skills_tags = "".join([f'<span style="background:#333; color:#00ffa3; padding:2px 8px; border-radius:4px; margin-right:5px; font-size:11px; display:inline-block; margin-top:4px;">{s}</span>' for s in job['skills']])
+    # 2. Direct Niche Feeds
+    feeds = ["https://www.workwithindies.com/feed", "https://www.games-career.com/FeedsRss/Programming"]
+    for url in feeds:
+        f = feedparser.parse(url)
+        for entry in f.entries:
+            score, skills, sal = analyze_job(entry.title, "", entry.get('summary', ''))
+            if score >= 15:
+                processed.append({
+                    "title": entry.title, "company": "Niche Board", "url": entry.link,
+                    "score": score, "skills": skills, "salary": sal, "source": "Direct Feed"
+                })
+
+    # Deduplicate & Sort
+    unique = {j['url']: j for j in processed}.values()
+    sorted_jobs = sorted(unique, key=lambda x: x['score'], reverse=True)
+
+    # --- HTML Generator ---
+    job_cards = ""
+    for j in sorted_jobs:
+        sal_text = f"💰 ${j['salary']:,}" if j['salary'] else "💰 Salary: Competitive/Not Listed"
+        tags = "".join([f'<span style="background:#333; color:#00ffa3; padding:2px 6px; border-radius:4px; margin-right:4px; font-size:10px;">{s}</span>' for s in j['skills']])
         
-        job_cards_html += f"""
-        <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 15px; color: #ffffff; font-family: sans-serif;">
-            <table width="100%">
-                <tr>
-                    <td>
-                        <h3 style="margin: 0; color: #ffffff; font-size: 18px;">{job['title']}</h3>
-                        <p style="margin: 4px 0; color: #888; font-size: 13px;">
-                            {job['company']} • <span style="color: #ffaa00;">{job['days_ago']}</span>
-                        </p>
-                    </td>
-                    <td style="text-align: right; vertical-align: top; width: 60px;">
-                        <div style="border: 2px solid #00ffa3; border-radius: 50%; width: 45px; height: 45px; line-height: 45px; text-align: center; color: #00ffa3; font-weight: bold; font-size: 14px;">
-                            {job['score']}%
-                        </div>
-                    </td>
-                </tr>
-            </table>
-            <div style="margin: 12px 0;">{skills_tags}</div>
-            <a href="{job['job_url']}" style="display: inline-block; background: #00ffa3; color: #000; text-decoration: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 12px;">Quick Apply</a>
+        job_cards += f"""
+        <div style="background:#1e1e1e; border:1px solid #333; border-radius:10px; padding:15px; margin-bottom:15px; font-family:sans-serif; color:#fff;">
+            <div style="float:right; border:2px solid #00ffa3; border-radius:50%; width:40px; height:40px; line-height:40px; text-align:center; color:#00ffa3; font-weight:bold; font-size:12px;">{j['score']}%</div>
+            <h3 style="margin:0; font-size:16px;">{j['title']}</h3>
+            <p style="margin:3px 0; color:#888; font-size:12px;">{j['company']} • {j['source']}</p>
+            <p style="margin:8px 0; color:#00ffa3; font-size:13px; font-weight:bold;">{sal_text}</p>
+            <div style="margin:10px 0;">{tags}</div>
+            <a href="{j['url']}" style="background:#00ffa3; color:#000; text-decoration:none; padding:8px 15px; border-radius:4px; font-weight:bold; font-size:11px; display:inline-block;">View Posting</a>
         </div>
         """
 
-    email_html = f"""
-    <div style="background: #121212; padding: 20px; font-family: sans-serif;">
-        <div style="max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #ffffff; margin-bottom: 5px;">Unity Talent Intelligence</h2>
-            <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Tracking {SEARCH_QUERY}</p>
-            {job_cards_html if job_cards_html else '<p style="color:#888;">No high-value leads found today.</p>'}
-        </div>
-    </div>
-    """
-    send_email(email_html)
+    # [Insert send_email function here with job_cards]
+    print(f"Report generated with {len(sorted_jobs)} jobs.")
 
 if __name__ == "__main__":
     run_agent()
