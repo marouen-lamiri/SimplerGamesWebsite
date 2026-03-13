@@ -1,14 +1,5 @@
 import os
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timezone
-import pandas as pd
-from jobspy import scrape_jobs
-
-# --- CONFIGURATION ---
-# Added Architect/Staff to search and skills
-import os
+import re
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
