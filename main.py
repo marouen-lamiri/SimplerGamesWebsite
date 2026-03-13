@@ -10,9 +10,13 @@ from jobspy import scrape_jobs
 # Added Architect/Staff to search and skills
 SEARCH_QUERY = "(Senior OR Lead OR Staff OR Architect) Unity Developer"
 MY_SKILLS = [
-    "C#", "Unity", "HLSL", "Shaders", "URP", "HDRP", 
-    "Multiplayer", "ECS", "DOTS", "Addressables", 
-    "Optimization", "Architect", "Staff", "Lead"
+    "C#", "Unity", "Unreal", "Git", "URP", "HDRP", "Android", "AR", "VR", "XR"
+    "Perforce", "C++", "DOTS", "Addressables", "iOS", ".Net", "JavaScript"
+    "Optimization", "Architect", "Staff", "Lead", "Python", "Java", "OpenGL",
+    "PHP", "Photon", "Normcore", "Multiplayer", "Unity Package Manager", "uGUI",
+    "NuGet", "Live Ops", "Data Analysis", "Mobile Games", "Oculus Quest", "WebGL",
+    "PostgreSQL", "Software measurement", "Software management", "Unit Testing",
+    "Machine Learning", "UI Toolkit", "Digital Twins"
 ]
 
 IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing"]
