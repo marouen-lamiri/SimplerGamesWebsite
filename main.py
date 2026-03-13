@@ -55,7 +55,7 @@ def run_agent():
     # We add "remoterocketship" to the search to catch their indexed pages
     jobs = scrape_jobs(
         site_name=["linkedin", "indeed", "google"],
-        search_term=f"{SEARCH_QUERY} (site:remoterocketship.com OR remote)",
+        search_term=SEARCH_QUERY,
         location="Remote",
         results_wanted=40,
         hours_old=48,
