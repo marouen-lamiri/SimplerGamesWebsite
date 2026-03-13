@@ -11,13 +11,9 @@ from jobspy import scrape_jobs
 # --- CONFIGURATION ---
 SEARCH_QUERY = "Unity Developer"
 MY_SKILLS = [
-    "C#", "Unity", "Unreal", "Git", "URP", "HDRP", "Android", "AR", "VR", "XR"
-    "Perforce", "C++", "DOTS", "Addressables", "iOS", ".Net", "JavaScript"
-    "Optimization", "Architect", "Staff", "Lead", "Python", "Java", "OpenGL",
-    "PHP", "Photon", "Normcore", "Multiplayer", "Unity Package Manager", "uGUI",
-    "NuGet", "Live Ops", "Data Analysis", "Mobile Games", "Oculus Quest", "WebGL",
-    "PostgreSQL", "Software measurement", "Software management", "Unit Testing",
-    "Machine Learning", "UI Toolkit", "Digital Twins"
+    "C#", "Unity", "HLSL", "Shaders", "URP", "HDRP", 
+    "Multiplayer", "ECS", "DOTS", "Addressables", 
+    "Optimization", "Architect", "Staff", "Lead"
 ]
 MIN_SALARY = 100000 
 IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing", "Recruitment"]
