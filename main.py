@@ -71,9 +71,9 @@ def run_agent():
         search_term=SEARCH_QUERY,
         location="Remote",
         results_wanted=25,
-        hours_old=48, # Expanded to 48h to ensure no weekend drops are missed
+        hours_old=168, # Expanded to 48h to ensure no weekend drops are missed
         description_formatting="markdown",
-        country_indeed="worldwide"  # <--- Add this line (or "worldwide")
+        country_indeed="canada"  # <--- Add this line (or "worldwide")
     )
 
     processed_listings = []
