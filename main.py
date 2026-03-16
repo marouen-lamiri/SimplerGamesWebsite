@@ -10,8 +10,8 @@ from jobspy import scrape_jobs
 # Added Architect/Staff to search and skills
 SEARCH_QUERY = "(Senior OR Lead OR Staff OR Architect) Unity Developer"
 MY_SKILLS = [
-    "C#", "Unity", "Unreal", "Git", "URP", "HDRP", "Android", "AR", "VR", "XR"
-    "Perforce", "C++", "DOTS", "Addressables", "iOS", ".Net", "JavaScript"
+    "C#", "Unity", "Unreal", "Git", "URP", "HDRP", "Android", "AR", "VR", "XR",
+    "Perforce", "C++", "DOTS", "Addressables", "iOS", ".Net", "JavaScript",
     "Optimization", "Architect", "Staff", "Lead", "Python", "Java", "OpenGL",
     "PHP", "Photon", "Normcore", "Multiplayer", "Unity Package Manager", "uGUI",
     "NuGet", "Live Ops", "Data Analysis", "Mobile Games", "Oculus Quest", "WebGL",
@@ -72,7 +72,8 @@ def run_agent():
         location="Remote",
         results_wanted=25,
         hours_old=48, # Expanded to 48h to ensure no weekend drops are missed
-        description_formatting="markdown"
+        description_formatting="markdown",
+        country_indeed="worldwide"  # <--- Add this line (or "worldwide")
     )
 
     processed_listings = []
