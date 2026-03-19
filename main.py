@@ -8,7 +8,7 @@ from jobspy import scrape_jobs
 
 # --- CONFIGURATION ---
 # Added Architect/Staff to search and skills
-SEARCH_QUERY = "(Senior OR Lead OR Staff OR Architect) Unity Developer"
+SEARCH_QUERY = "Unity Developer"
 MY_SKILLS = [
     "C#", "Unity", "Unreal", "Git", "URP", "HDRP", "Android", "AR", "VR", "XR",
     "Perforce", "C++", "DOTS", "Addressables", "iOS", ".Net", "JavaScript",
