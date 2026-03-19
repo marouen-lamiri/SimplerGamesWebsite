@@ -51,7 +51,20 @@ def get_days_ago(date_posted):
     except:
         return "Recent"
 
-# ... [send_email function remains the same] ...
+def send_email(html_content):
+    sender = os.getenv("EMAIL_SENDER")
+    receiver = os.getenv("EMAIL_RECEIVER")
+    password = os.getenv("EMAIL_PASSWORD")
+    
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = f"🚀 Unity Lead/Architect Report: {datetime.now().strftime('%b %d')}"
+    msg["From"] = sender
+    msg["To"] = receiver
+    msg.attach(MIMEText(html_content, "html"))
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(sender, password)
+        server.sendmail(sender, receiver, msg.as_string())
 
 def run_agent():
     try:
@@ -88,8 +101,42 @@ def run_agent():
         processed_listings.sort(key=lambda x: x['score'], reverse=True)
 
     # --- HTML GENERATION ---
-    # (Same as your logic, but ensure it handles empty processed_listings)
-    # ... 
+    job_cards_html = ""
+    for job in processed_listings:
+        skills_tags = "".join([f'<span style="background:#333; color:#00ffa3; padding:2px 8px; border-radius:4px; margin-right:5px; font-size:11px; display:inline-block; margin-top:4px;">{s}</span>' for s in job['skills']])
+        
+        job_cards_html += f"""
+        <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 15px; color: #ffffff; font-family: sans-serif;">
+            <table width="100%">
+                <tr>
+                    <td>
+                        <h3 style="margin: 0; color: #ffffff; font-size: 18px;">{job['title']}</h3>
+                        <p style="margin: 4px 0; color: #888; font-size: 13px;">
+                            {job['company']} • <span style="color: #ffaa00;">{job['days_ago']}</span>
+                        </p>
+                    </td>
+                    <td style="text-align: right; vertical-align: top; width: 60px;">
+                        <div style="border: 2px solid #00ffa3; border-radius: 50%; width: 45px; height: 45px; line-height: 45px; text-align: center; color: #00ffa3; font-weight: bold; font-size: 14px;">
+                            {job['score']}%
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div style="margin: 12px 0;">{skills_tags}</div>
+            <a href="{job['job_url']}" style="display: inline-block; background: #00ffa3; color: #000; text-decoration: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 12px;">Quick Apply</a>
+        </div>
+        """
+
+    email_html = f"""
+    <div style="background: #121212; padding: 20px; font-family: sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #ffffff; margin-bottom: 5px;">Unity Talent Intelligence</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Tracking {SEARCH_QUERY}</p>
+            {job_cards_html if job_cards_html else '<p style="color:#888;">No high-value leads found today.</p>'}
+        </div>
+    </div>
+    """
+    send_email(email_html)
 
 if __name__ == "__main__":
     run_agent()
