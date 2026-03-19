@@ -8,7 +8,7 @@ from jobspy import scrape_jobs
 import re
 
 # --- CONFIGURATION ---
-SEARCH_QUERY = "Unity Developer"
+SEARCH_QUERY = "(Unity OR Unreal OR Game OR AR OR VR OR XR OR AR/VR) Developer"
 MY_SKILLS = {
     "C#", "Unity", "Unreal", "Git", "URP", "HDRP", "Android", "AR", "VR", "XR",
     "Perforce", "C++", "DOTS", "Addressables", "iOS", ".Net", "JavaScript",
@@ -60,7 +60,7 @@ def send_email(html_content):
     password = os.getenv("EMAIL_PASSWORD")
     
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"🌍 Unity Global Remote Report: {datetime.now().strftime('%b %d')}"
+    msg["Subject"] = f"🌍 Job Global Remote Report: {datetime.now().strftime('%b %d')}"
     msg["From"] = sender
     msg["To"] = receiver
     msg.attach(MIMEText(html_content, "html"))
@@ -141,7 +141,7 @@ def run_agent():
     email_html = f"""
     <div style="background: #121212; padding: 20px; font-family: sans-serif;">
         <div style="max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #ffffff; margin-bottom: 5px;">Unity Talent Intelligence</h2>
+            <h2 style="color: #ffffff; margin-bottom: 5px;">Job Search</h2>
             <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Tracking <b>{SEARCH_QUERY}</b> in USA, Canada, & Worldwide</p>
             {job_cards_html if job_cards_html else '<p style="color:#888;">No high-value global leads found today.</p>'}
         </div>
