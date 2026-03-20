@@ -203,40 +203,33 @@ def run_agent():
     # --- HTML GENERATION (Condensed) ---
     job_cards_html = ""
     if processed_listings:
-        for job in processed_listings:
-            skills_tags = "".join([f'<span style="background:#333; color:#00ffa3; padding:2px 8px; border-radius:4px; margin-right:5px; font-size:11px; display:inline-block; margin-top:4px;">{s}</span>' for s in job['skills']])
-            # Added a location badge to the UI
-            loc_info = f"{job.get('location', 'Remote')}"
+        job_cards = ""
+        for job in final_list:
+            border = "#00ffa3" if job['score'] >= 80 else "#333"
+            skills_html = "".join([f'<span style="background:#222; color:#00ffa3; padding:2px 6px; border-radius:4px; margin-right:4px; font-size:10px; border:1px solid #444;">{s}</span>' for s in job['skills']])
             
-            job_cards_html += f"""
-            <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 15px; color: #ffffff; font-family: sans-serif;">
+            job_cards += f"""
+            <div style="background:#1a1a1a; border:1px solid {border}; border-radius:10px; padding:15px; margin-bottom:15px; font-family:sans-serif;">
                 <table width="100%">
                     <tr>
                         <td>
-                            <h3 style="margin: 0; color: #ffffff; font-size: 18px;">{job['title']}</h3>
-                            <p style="margin: 4px 0; color: #888; font-size: 13px;">
-                                {job['company']} • <span style="color: #00ffa3;">{loc_info}</span> • <span style="color: #ffaa00;">{job['days_ago']}</span>
-                            </p>
+                            <h3 style="margin:0; color:#fff; font-size:16px;">{job['title']}</h3>
+                            <p style="margin:4px 0; color:#aaa; font-size:12px;">{job['company']} • <span style="color:#00ffa3;">{job.get('site', 'JobBoard')}</span></p>
                         </td>
-                        <td style="text-align: right; vertical-align: top; width: 60px;">
-                            <div style="border: 2px solid #00ffa3; border-radius: 50%; width: 45px; height: 45px; line-height: 45px; text-align: center; color: #00ffa3; font-weight: bold; font-size: 14px;">
-                                {job['score']}%
-                            </div>
+                        <td align="right" valign="top">
+                            <div style="color:#00ffa3; font-weight:bold; font-size:18px;">{job['score']}%</div>
                         </td>
                     </tr>
                 </table>
-                <div style="margin: 12px 0;">{skills_tags}</div>
-                <a href="{job['job_url']}" style="display: inline-block; background: #00ffa3; color: #000; text-decoration: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 12px;">View Opportunity</a>
+                <div style="margin:10px 0;">{skills_html}</div>
+                <a href="{job['job_url']}" style="background:#00ffa3; color:#000; text-decoration:none; padding:6px 12px; border-radius:4px; font-weight:bold; font-size:11px; display:inline-block;">View Role</a>
             </div>
             """
     
-        email_html = f"""
-        <div style="background: #121212; padding: 20px; font-family: sans-serif;">
-            <div style="max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #ffffff; margin-bottom: 5px;">Job Search</h2>
-                <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Tracking <b>{SEARCH_QUERY_JOBSPY}</b> in USA, Canada, & Worldwide</p>
-                {job_cards_html if job_cards_html else '<p style="color:#888;">No high-value global leads found today.</p>'}
-            </div>
+        full_html = f"""
+        <div style="background:#111; padding:20px;">
+            <h2 style="color:#fff; border-bottom:1px solid #333; padding-bottom:10px;">Unity Talent Intelligence</h2>
+            {job_cards if job_cards else '<p style="color:#888;">No high-score matches today.</p>'}
         </div>
         """
         send_email(email_html)
