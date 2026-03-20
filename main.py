@@ -32,6 +32,12 @@ SKILL_WEIGHTS = {
 }
 TARGET_SCORE = 12  # A "100%" match is roughly one Platinum + two Gold + one Silver
 
+# --- NEW: STRICT GEOFENCING ---
+# Any job whose location string doesn't contain one of these will be ignored.
+LOCATION_WHITELIST = ["usa", "united states", "america", "canada", "ca", "montreal", "toronto", "vancouver", "quebec", "ontario", "remote"]
+# However, we must exclude "Remote" alone if it's paired with a banned country.
+LOCATION_BLACKLIST = ["uk", "united kingdom", "india", "germany", "europe", "brazil", "asia"]
+
 IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing"]
 TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate"]
 
@@ -44,31 +50,43 @@ TARGET_MARKETS = [
     {"country": "usa/ca", "location": "Remote"}
 ]
 
-def analyze_job(title, company, description):
+def is_location_valid(job_location):
+    """Ensures the job is actually in our target territory."""
+    loc = str(job_location).lower()
+    
+    # Check if any blacklisted country is mentioned (e.g., "Remote, UK")
+    if any(banned in loc for banned in LOCATION_BLACKLIST):
+        return False
+        
+    # Check if it mentions our allowed regions
+    if any(allowed in loc for allowed in LOCATION_WHITELIST):
+        return True
+        
+    return False
+
+def analyze_job(title, company, description, location):
+    # 1. Physical Location Check
+    if not is_location_valid(location):
+        return -1, []
+
     title_clean = str(title).lower()
     company_clean = str(company).lower()
     desc_clean = str(description).lower()
 
-    # 1. Immediate Disqualifiers (Redlines)
+    # 2. Company/Title Check
     if any(item.lower() in company_clean for item in IGNORE_LIST): return -1, []
     if any(item.lower() in title_clean for item in TITLE_BLACKLIST): return -1, []
 
-    # 2. Extract Keywords & Calculate Points
+    # 3. Points Calculation
     text = f"{title_clean} {desc_clean}"
     found_skills = []
     total_points = 0
-
     for skill, weight in SKILL_WEIGHTS.items():
-        # Using regex to ensure we don't match sub-words
         if re.search(rf'\b{re.escape(skill.lower())}\b', text):
             found_skills.append(skill)
             total_points += weight
 
-    # 3. Final Calculation
-    # If a job is an "Architect" (5) role using "DOTS" (3) and "Optimization" (3) with "Unity" (1)
-    # Total = 12 pts -> 100% Score.
     score = min(round((total_points / TARGET_SCORE) * 100), 100)
-    
     return score, found_skills
 
 def get_days_ago(date_posted):
@@ -101,36 +119,41 @@ def send_email(html_content):
 
 def run_agent():
     all_results = []
-
     for market in TARGET_MARKETS:
-        print(f"Searching {market['country'].upper()} market...")
+        print(f"🔍 Fetching {market['country'].upper()}...")
         try:
             jobs = scrape_jobs(
                 site_name=["linkedin", "indeed", "google"],
                 search_term=SEARCH_QUERY,
                 location=market['location'],
-                results_wanted=20,
-                hours_old=168,
+                results_wanted=30, # Increased sample size to account for more filtered-out jobs
+                hours_old=72,
                 country_indeed=market['country'],
-                is_remote=True, # Forces the remote filter
+                is_remote=(market['location'] == "Remote"),
                 description_formatting="markdown"
             )
             if not jobs.empty:
                 all_results.append(jobs)
         except Exception as e:
-            print(f"Error scraping {market['country']}: {e}")
+            print(f"⚠️ Market error: {e}")
 
     if not all_results:
-        print("No jobs found in any market.")
+        print("No raw data found.")
         return
 
-    # Combine and Deduplicate based on job URL
     combined_jobs = pd.concat(all_results).drop_duplicates(subset=['job_url'])
-
     processed_listings = []
+
     for _, row in combined_jobs.iterrows():
-        score, found_skills = analyze_job(row['title'], row['company'], row.get('description', ''))
-        if score >= 25: 
+        # Pass location into the analysis function
+        score, found_skills = analyze_job(
+            row['title'], 
+            row['company'], 
+            row.get('description', ''), 
+            row.get('location', 'Unknown')
+        )
+        
+        if score >= 30: 
             days_ago = get_days_ago(row.get('date_posted'))
             processed_listings.append({**row, "score": score, "skills": found_skills, "days_ago": days_ago})
     
@@ -138,43 +161,49 @@ def run_agent():
 
     # --- HTML GENERATION (Condensed) ---
     job_cards_html = ""
-    for job in processed_listings:
-        skills_tags = "".join([f'<span style="background:#333; color:#00ffa3; padding:2px 8px; border-radius:4px; margin-right:5px; font-size:11px; display:inline-block; margin-top:4px;">{s}</span>' for s in job['skills']])
-        # Added a location badge to the UI
-        loc_info = f"{job.get('location', 'Remote')}"
-        
-        job_cards_html += f"""
-        <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 15px; color: #ffffff; font-family: sans-serif;">
-            <table width="100%">
-                <tr>
-                    <td>
-                        <h3 style="margin: 0; color: #ffffff; font-size: 18px;">{job['title']}</h3>
-                        <p style="margin: 4px 0; color: #888; font-size: 13px;">
-                            {job['company']} • <span style="color: #00ffa3;">{loc_info}</span> • <span style="color: #ffaa00;">{job['days_ago']}</span>
-                        </p>
-                    </td>
-                    <td style="text-align: right; vertical-align: top; width: 60px;">
-                        <div style="border: 2px solid #00ffa3; border-radius: 50%; width: 45px; height: 45px; line-height: 45px; text-align: center; color: #00ffa3; font-weight: bold; font-size: 14px;">
-                            {job['score']}%
-                        </div>
-                    </td>
-                </tr>
-            </table>
-            <div style="margin: 12px 0;">{skills_tags}</div>
-            <a href="{job['job_url']}" style="display: inline-block; background: #00ffa3; color: #000; text-decoration: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 12px;">View Opportunity</a>
+    if processed_listings:
+        for job in processed_listings:
+            skills_tags = "".join([f'<span style="background:#333; color:#00ffa3; padding:2px 8px; border-radius:4px; margin-right:5px; font-size:11px; display:inline-block; margin-top:4px;">{s}</span>' for s in job['skills']])
+            # Added a location badge to the UI
+            loc_info = f"{job.get('location', 'Remote')}"
+            
+            job_cards_html += f"""
+            <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 15px; color: #ffffff; font-family: sans-serif;">
+                <table width="100%">
+                    <tr>
+                        <td>
+                            <h3 style="margin: 0; color: #ffffff; font-size: 18px;">{job['title']}</h3>
+                            <p style="margin: 4px 0; color: #888; font-size: 13px;">
+                                {job['company']} • <span style="color: #00ffa3;">{loc_info}</span> • <span style="color: #ffaa00;">{job['days_ago']}</span>
+                            </p>
+                        </td>
+                        <td style="text-align: right; vertical-align: top; width: 60px;">
+                            <div style="border: 2px solid #00ffa3; border-radius: 50%; width: 45px; height: 45px; line-height: 45px; text-align: center; color: #00ffa3; font-weight: bold; font-size: 14px;">
+                                {job['score']}%
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <div style="margin: 12px 0;">{skills_tags}</div>
+                <a href="{job['job_url']}" style="display: inline-block; background: #00ffa3; color: #000; text-decoration: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 12px;">View Opportunity</a>
+            </div>
+            """
+    
+        email_html = f"""
+        <div style="background: #121212; padding: 20px; font-family: sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #ffffff; margin-bottom: 5px;">Job Search</h2>
+                <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Tracking <b>{SEARCH_QUERY}</b> in USA, Canada, & Worldwide</p>
+                {job_cards_html if job_cards_html else '<p style="color:#888;">No high-value global leads found today.</p>'}
+            </div>
         </div>
         """
-
-    email_html = f"""
-    <div style="background: #121212; padding: 20px; font-family: sans-serif;">
-        <div style="max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #ffffff; margin-bottom: 5px;">Job Search</h2>
-            <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Tracking <b>{SEARCH_QUERY}</b> in USA, Canada, & Worldwide</p>
-            {job_cards_html if job_cards_html else '<p style="color:#888;">No high-value global leads found today.</p>'}
-        </div>
-    </div>
-    """
-    send_email(email_html)
+        send_email(email_html)
+        print(f"✅ Success! {len(processed_listings)} jobs passed the location and skill filter.")
+    else:
+        print("❌ Jobs were found, but none were in the correct location or met skill requirements.")
+        
+    
 
 if __name__ == "__main__":
     run_agent()
