@@ -140,7 +140,7 @@ def get_days_ago(date_posted):
     except:
         return "Recent"
 
-def send_email(html_content, count):  # <-- Added 'count' here
+def send_email(html_content, count):
     sender = os.getenv("EMAIL_SENDER")
     receiver = os.getenv("EMAIL_RECEIVER")
     password = os.getenv("EMAIL_PASSWORD")
@@ -310,7 +310,7 @@ def run_agent():
         )
         
         # Only keep high-quality matches
-        if score >= 1:
+        if score >= TARGET_SCORE:
             processed_listings.append({
                 **row, 
                 "score": score, 
