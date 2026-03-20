@@ -30,6 +30,7 @@ SKILL_WEIGHTS = {
     "PostgreSQL": 1, "Software measurement": 1, "Software management": 1,
     "Machine Learning": 1
 }
+TARGET_SCORE = 12  # A "100%" match is roughly one Platinum + two Gold + one Silver
 
 IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing"]
 TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate"]
