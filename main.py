@@ -159,83 +159,84 @@ def send_email(html_content):
         print(f"Failed to send email: {e}")
 
 def run_agent():
-    all_results = []
-    markets = [{"country": "usa", "loc": "Remote"}, {"country": "canada", "loc": "Remote"}]
-    for m in markets:
-        print(f"🔍 Scraping {m['country'].upper()} (LinkedIn, Indeed, Google)...")
+    """Main execution loop: Scrapes, Parses Feeds, Scores, and Emails."""
+    all_data = []
+    
+    # --- PART A: JOBSPY (LinkedIn & Google) ---
+    for market in TARGET_MARKETS:
+        print(f"🔍 Searching JobSpy: {market['country'].upper()} ({market['location']})...")
         try:
+            # Dynamically set the remote flag based on your location string
+            is_remote_search = True if "remote" in market['location'].lower() else False
+            
             jobs = scrape_jobs(
-                site_name=["linkedin", "indeed", "google"],
+                site_name=["linkedin", "google"],
                 search_term=SEARCH_QUERY_JOBSPY,
-                location=m['loc'],
-                results_wanted=30,
+                location=market['location'],
+                results_wanted=25,
                 hours_old=72,
-                country_indeed=m['country'],
-                is_remote=True
+                country_indeed=market['country'],
+                is_remote=is_remote_search,
+                description_formatting="markdown"
             )
-            if not jobs.empty: all_results.append(jobs)
+            
+            if not jobs.empty: 
+                # Tag the results so we know which search found them
+                jobs['market_tag'] = f"{market['country'].upper()}/{market['location']}"
+                all_data.append(jobs)
+                print(f"✅ Found {len(jobs)} potential leads.")
+                
         except Exception as e:
-            print(f"⚠️ JobSpy error: {e}")
+            # This prevents a single site error from killing the whole script
+            print(f"⚠️ JobSpy skipped {market['location']} due to error: {e}")
 
-    # 2. Work With Indies
-    try:
-        wwi_df = fetch_stable_feeds()
-        if not wwi_df.empty: all_results.append(wwi_df)
-    except Exception as e:
-        print(f"⚠️ WWI error: {e}")
+    # --- PART B: STABLE RSS & API FEEDS ---
+    # These are your "Unblockable" backups for WWI, Remotive, WWR, and Hacker News
+    print("📡 Syncing Stable Feeds (RSS & APIs)...")
+    feed_jobs = fetch_stable_feeds()
+    if not feed_jobs.empty: 
+        feed_jobs['market_tag'] = "Global/StableFeed"
+        all_data.append(feed_jobs)
 
-    if not all_results:
-        print("📭 No jobs found today.")
+    if not all_data:
+        print("📭 No jobs found from any source today.")
         return
 
-    combined_jobs = pd.concat(all_results).drop_duplicates(subset=['job_url'])
+    # --- PART C: DEDUPLICATION & ANALYSIS ---
+    # Combine everything and drop duplicates based on the URL
+    combined = pd.concat(all_data).drop_duplicates(subset=['job_url'])
     processed_listings = []
 
-    for _, row in combined_jobs.iterrows():
-        score, found_skills = analyze_job(
-            row['title'], row['company'], row.get('description', ''), row.get('location', 'Remote')
+    for _, row in combined.iterrows():
+        # Pass data into your Scoring & Blacklist engine
+        score, skills = analyze_job(
+            row['title'], 
+            row['company'], 
+            row.get('description', ''), 
+            row.get('location', 'Remote')
         )
-        if score >= 35: # Quality threshold
-            processed_listings.append({**row, "score": score, "skills": found_skills})
+        
+        # Only keep high-quality matches
+        if score >= 35:
+            processed_listings.append({
+                **row, 
+                "score": score, 
+                "skills": skills,
+                "origin_tag": row.get('market_tag', 'Direct')
+            })
     
+    # Sort by Score (Highest first)
     processed_listings.sort(key=lambda x: x['score'], reverse=True)
 
-    # --- HTML GENERATION (Condensed) ---
-    job_cards_html = ""
+    # --- PART D: EMAIL DISPATCH ---
     if processed_listings:
-        job_cards = ""
-        for job in final_list:
-            border = "#00ffa3" if job['score'] >= 80 else "#333"
-            skills_html = "".join([f'<span style="background:#222; color:#00ffa3; padding:2px 6px; border-radius:4px; margin-right:4px; font-size:10px; border:1px solid #444;">{s}</span>' for s in job['skills']])
-            
-            job_cards += f"""
-            <div style="background:#1a1a1a; border:1px solid {border}; border-radius:10px; padding:15px; margin-bottom:15px; font-family:sans-serif;">
-                <table width="100%">
-                    <tr>
-                        <td>
-                            <h3 style="margin:0; color:#fff; font-size:16px;">{job['title']}</h3>
-                            <p style="margin:4px 0; color:#aaa; font-size:12px;">{job['company']} • <span style="color:#00ffa3;">{job.get('site', 'JobBoard')}</span></p>
-                        </td>
-                        <td align="right" valign="top">
-                            <div style="color:#00ffa3; font-weight:bold; font-size:18px;">{job['score']}%</div>
-                        </td>
-                    </tr>
-                </table>
-                <div style="margin:10px 0;">{skills_html}</div>
-                <a href="{job['job_url']}" style="background:#00ffa3; color:#000; text-decoration:none; padding:6px 12px; border-radius:4px; font-weight:bold; font-size:11px; display:inline-block;">View Role</a>
-            </div>
-            """
-    
-        full_html = f"""
-        <div style="background:#111; padding:20px;">
-            <h2 style="color:#fff; border-bottom:1px solid #333; padding-bottom:10px;">Unity Talent Intelligence</h2>
-            {job_cards if job_cards else '<p style="color:#888;">No high-score matches today.</p>'}
-        </div>
-        """
-        send_email(email_html)
-        print(f"✅ Success! {len(processed_listings)} jobs passed the location and skill filter.")
+        # Generate the HTML list from processed_listings
+        # (Using the HTML card logic from the previous version)
+        html_report = generate_html_report(processed_listings) 
+        send_email(html_report, len(processed_listings))
+        print(f"🚀 Success! {len(processed_listings)} leads sent to your inbox.")
     else:
-        print("❌ Jobs were found, but none were in the correct location or met skill requirements.")
+        print("🕵️ No jobs passed the score threshold or blacklist today.")
 
 if __name__ == "__main__":
     run_agent()
