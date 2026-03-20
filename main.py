@@ -10,17 +10,14 @@ import re
 # --- CONFIGURATION ---
 SEARCH_QUERY = "(Unity OR Unreal OR Game OR AR OR VR OR XR OR AR/VR OR Mobile) Developer"
 SKILL_WEIGHTS = {
-    # Platinum Tier (5 points)
     "Unity": 5, "C#": 5, 
     
-    # Gold Tier (3 points)
-    "DOTS": 3, "Multiplayer": 3, "Photon": 3, 
-    "Normcore": 3, "ECS": 3, "HDRP": 3, "URP": 3, "Graphics": 3,
-    "Native": 3, "C++": 3, "Shaders": 3, "Digital Twins": 3, 
-    "Android": 3, "AR": 3, "VR": 3, "XR": 3, "Mobile Games": 3, 
-    "Unreal": 3, ".Net": 3, "Photon": 3, "WebGL": 3,
+    "DOTS": 2, "Multiplayer": 2, "Photon": 2, 
+    "Normcore": 2, "ECS": 2, "HDRP": 2, "URP": 2, "Graphics": 2,
+    "Native": 2, "C++": 2, "Shaders": 2, "Digital Twins": 2, 
+    "Android": 2, "AR": 2, "VR": 2, "XR": 2, "Mobile Games": 2, 
+    "Unreal": 2, ".Net": 2, "Photon": 2, "WebGL": 2,
     
-    # Silver Tier (1 point)
     "Git": 1, "Perforce": 1, "iOS": 1, "Optimization": 1,
     "Addressables": 1, "Unit Testing": 1, "Python": 1, "Java": 1,
     "JavaScript" : 1, "OpenGL": 1, "PHP": 1, "Normcore": 1, 
@@ -30,7 +27,7 @@ SKILL_WEIGHTS = {
     "PostgreSQL": 1, "Software measurement": 1, "Software management": 1,
     "Machine Learning": 1
 }
-TARGET_SCORE = 12  # A "100%" match is roughly one Platinum + two Gold + one Silver
+TARGET_SCORE = 25 # A "100%" match is 25 points
 
 # --- NEW: STRICT GEOFENCING ---
 # Any job whose location string doesn't contain one of these will be ignored.
@@ -39,7 +36,7 @@ LOCATION_WHITELIST = ["usa", "united states", "america", "canada", "ca", "montre
 LOCATION_BLACKLIST = ["uk", "united kingdom", "india", "germany", "europe", "brazil", "asia"]
 
 IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing"]
-TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate", "Artist"]
+TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate", "Artist", "Work-Study", "Fellowship"]
 
 # Define the targets: (Country Code for Indeed/Glassdoor, Location string)
 # "Remote" as a location usually triggers "Remote Anywhere/Worldwide" on LinkedIn/Google
