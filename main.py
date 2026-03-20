@@ -217,7 +217,7 @@ def run_agent():
         )
         
         # Only keep high-quality matches
-        if score >= 12:
+        if score >= 1:
             processed_listings.append({
                 **row, 
                 "score": score, 
