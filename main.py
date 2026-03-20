@@ -17,7 +17,7 @@ SKILL_WEIGHTS = {
     "DOTS": 3, "Multiplayer": 3, "Photon": 3, 
     "Normcore": 3, "ECS": 3, "HDRP": 3, "URP": 3, "Graphics": 3,
     "Native": 3, "C++": 3, "Shaders": 3, "Digital Twins": 3, 
-    "Android": 3, "AR": 3, "VR": 3, "XR":, "Mobile Games": 3, 
+    "Android": 3, "AR": 3, "VR": 3, "XR": 3, "Mobile Games": 3, 
     "Unreal": 3, ".Net": 3, "Photon": 3, "WebGL": 3
     
     # Silver Tier (1 point)
