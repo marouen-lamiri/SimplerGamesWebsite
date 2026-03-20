@@ -158,6 +158,80 @@ def send_email(html_content):
     except Exception as e:
         print(f"Failed to send email: {e}")
 
+def generate_html_report(processed_listings):
+    """Converts the list of scored jobs into a high-end Dark Mode HTML report."""
+    
+    # Header Section
+    report_html = f"""
+    <div style="background-color: #0a0a0a; color: #ffffff; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #00ffa3; font-size: 24px; margin-bottom: 5px;">Unity Talent Intelligence</h1>
+            <p style="color: #888; font-size: 14px; margin-top: 0;">{len(processed_listings)} high-value leads identified for {datetime.now().strftime('%B %d, %Y')}</p>
+            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+    """
+
+    # Job Cards Loop
+    for job in processed_listings:
+        # Highlight top-tier matches with a glowing border
+        border_color = "#00ffa3" if job['score'] >= 80 else "#222"
+        
+        # Format the skills as small "chips"
+        skills_chips = "".join([
+            f'<span style="background: #111; color: #00ffa3; padding: 3px 8px; border-radius: 4px; margin-right: 5px; font-size: 11px; border: 1px solid #333; display: inline-block; margin-bottom: 4px;">{skill}</span>' 
+            for skill in job['skills']
+        ])
+
+        report_html += f"""
+            <div style="background: #161616; border: 1px solid {border_color}; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <table width="100%" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <h2 style="margin: 0; font-size: 18px; color: #ffffff;">{job['title']}</h2>
+                            <p style="margin: 5px 0; color: #00ffa3; font-size: 13px; font-weight: bold;">
+                                {job['company']} 
+                                <span style="color: #555; font-weight: normal; margin-left: 5px;">• {job['location']}</span>
+                            </p>
+                        </td>
+                        <td style="vertical-align: top; text-align: right; width: 60px;">
+                            <div style="color: #00ffa3; font-size: 22px; font-weight: bold;">{job['score']}%</div>
+                            <div style="font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: 1px;">Match</div>
+                        </td>
+                    </tr>
+                </table>
+                
+                <div style="margin: 15px 0;">
+                    {skills_chips}
+                </div>
+                
+                <table width="100%" cellspacing="0" cellpadding="0" style="margin-top: 10px;">
+                    <tr>
+                        <td>
+                            <span style="background: #222; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 10px; text-transform: uppercase;">
+                                Source: {job.get('origin_tag', 'Direct')}
+                            </span>
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="{job['job_url']}" style="background-color: #00ffa3; color: #000000; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-block;">
+                                View Position →
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        """
+
+    # Footer Section
+    report_html += """
+            <p style="text-align: center; color: #444; font-size: 11px; margin-top: 30px;">
+                Automated Intelligence by Simpler Games Agent. <br>
+                Targeting: Lead/Senior Unity Roles in Canada & USA.
+            </p>
+        </div>
+    </div>
+    """
+    
+    return report_html
+
 def run_agent():
     """Main execution loop: Scrapes, Parses Feeds, Scores, and Emails."""
     all_data = []
