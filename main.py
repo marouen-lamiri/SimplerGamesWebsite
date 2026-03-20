@@ -8,15 +8,27 @@ from jobspy import scrape_jobs
 import re
 
 # --- CONFIGURATION ---
-SEARCH_QUERY = "(Unity OR Unreal OR Game OR AR OR VR OR XR OR AR/VR) Developer"
-MY_SKILLS = {
-    "C#", "Unity", "Unreal", "Git", "URP", "HDRP", "Android", "AR", "VR", "XR",
-    "Perforce", "C++", "DOTS", "Addressables", "iOS", ".Net", "JavaScript",
-    "Optimization", "Architect", "Staff", "Lead", "Python", "Java", "OpenGL",
-    "PHP", "Photon", "Normcore", "Multiplayer", "Unity Package Manager", "uGUI",
-    "NuGet", "Live Ops", "Data Analysis", "Mobile Games", "Oculus Quest", "WebGL",
-    "PostgreSQL", "Software measurement", "Software management", "Unit Testing",
-    "Machine Learning", "UI Toolkit", "Digital Twins"
+SEARCH_QUERY = "(Unity Developer OR Unreal Developer OR Game Developer OR AR Developer OR VR Developer OR XR Developer OR AR/VR Developer OR Mobile Developer)"
+SKILL_WEIGHTS = {
+    # Platinum Tier (5 points)
+    "Unity": 5, "C#": 5, 
+    
+    # Gold Tier (3 points)
+    "DOTS": 3, "Multiplayer": 3, "Photon": 3, 
+    "Normcore": 3, "ECS": 3, "HDRP": 3, "URP": 3, "Graphics": 3,
+    "Native": 3, "C++": 3, "Shaders": 3, "Digital Twins": 3, 
+    "Android": 3, "AR": 3, "VR": 3, "XR":, "Mobile Games": 3, 
+    "Unreal": 3, ".Net": 3, "Photon": 3, "WebGL": 3
+    
+    # Silver Tier (1 point)
+    "Git": 1, "Perforce": 1, "iOS": 1, , "Optimization": 1,
+    "Addressables": 1, "Unit Testing": 1, "Python": 1, "Java": 1,
+    "JavaScript" : 1, "OpenGL": 1, "PHP": 1, "Normcore": 1, 
+    "Multiplayer": 1, "Unity Package Manager": 1, "UPM": 1,
+    "NuGet": 1, "Live Ops": 1, "Data Analysis": 1, "Oculus Quest": 1,
+    "UI Toolkit": 1, "uGUI": 1, "Zenject": 1, "VContainer": 1,
+    "PostgreSQL": 1, "Software measurement": 1, "Software management": 1,
+    "Machine Learning": 1
 }
 
 IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing"]
@@ -26,7 +38,9 @@ TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate"]
 # "Remote" as a location usually triggers "Remote Anywhere/Worldwide" on LinkedIn/Google
 TARGET_MARKETS = [
     {"country": "usa", "location": "Remote"},
-    {"country": "canada", "location": "Remote"}
+    {"country": "canada", "location": "Remote"},
+    {"country": "canada", "location": "Montreal"},
+    {"country": "us/ca", "location": "Remote"}
 ]
 
 def analyze_job(title, company, description):
@@ -34,15 +48,27 @@ def analyze_job(title, company, description):
     company_clean = str(company).lower()
     desc_clean = str(description).lower()
 
+    # 1. Immediate Disqualifiers (Redlines)
     if any(item.lower() in company_clean for item in IGNORE_LIST): return -1, []
     if any(item.lower() in title_clean for item in TITLE_BLACKLIST): return -1, []
 
+    # 2. Extract Keywords & Calculate Points
     text = f"{title_clean} {desc_clean}"
-    found = [skill for skill in MY_SKILLS if re.search(rf'\b{re.escape(skill.lower())}\b', text)]
+    found_skills = []
+    total_points = 0
+
+    for skill, weight in SKILL_WEIGHTS.items():
+        # Using regex to ensure we don't match sub-words
+        if re.search(rf'\b{re.escape(skill.lower())}\b', text):
+            found_skills.append(skill)
+            total_points += weight
+
+    # 3. Final Calculation
+    # If a job is an "Architect" (5) role using "DOTS" (3) and "Optimization" (3) with "Unity" (1)
+    # Total = 12 pts -> 100% Score.
+    score = min(round((total_points / TARGET_SCORE) * 100), 100)
     
-    # Scoring normalized against a "perfect" 7-skill match
-    score = min(round((len(found) / 7) * 100), 100) 
-    return score, found
+    return score, found_skills
 
 def get_days_ago(date_posted):
     if pd.isna(date_posted): return "New"
@@ -60,7 +86,7 @@ def send_email(html_content):
     password = os.getenv("EMAIL_PASSWORD")
     
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"🌍 Job Global Remote Report: {datetime.now().strftime('%b %d')}"
+    msg["Subject"] = f"🌍 Global Remote Job Report: {datetime.now().strftime('%b %d')}"
     msg["From"] = sender
     msg["To"] = receiver
     msg.attach(MIMEText(html_content, "html"))
