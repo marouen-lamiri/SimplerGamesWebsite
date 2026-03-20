@@ -30,7 +30,11 @@ SKILL_WEIGHTS = {
     "PostgreSQL": 1, "Software measurement": 1, "Software management": 1,
     "Machine Learning": 1
 }
-TARGET_SCORE = 25 # A "100%" match is 25 points
+SKILLS_BLACKLIST = [
+    "NFT",, "Gambling", "Casino", "Slot", "Betting", "Unity Catalog"
+    "Unpaid", "Equity Only", "Volunteer", "No Salary", "Internship"
+]
+TARGET_SCORE = 15 # A "100%" match is 25 points
 
 # --- NEW: STRICT GEOFENCING ---
 # Any job whose location string doesn't contain one of these will be ignored.
@@ -39,7 +43,7 @@ LOCATION_WHITELIST = ["usa", "united states", "america", "canada", "ca", "montre
 LOCATION_BLACKLIST = ["uk", "united kingdom", "india", "germany", "europe", "brazil", "asia"]
 
 IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing"]
-TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate", "Artist", "Work-Study", "Fellowship"]
+TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate", "Artist", "Work-Study", "Fellowship", "Test"]
 
 # Define the targets: (Country Code for Indeed/Glassdoor, Location string)
 # "Remote" as a location usually triggers "Remote Anywhere/Worldwide" on LinkedIn/Google
@@ -70,28 +74,40 @@ def fetch_work_with_indies():
                 "site": "WorkWithIndies"
             })
     return pd.DataFrame(wwi_jobs)
-
+    
 def is_location_valid(job_location):
     loc = str(job_location).lower()
     if any(banned in loc for banned in LOCATION_BLACKLIST): return False
     if any(allowed in loc for allowed in LOCATION_WHITELIST): return True
     return False
-
+    
 def analyze_job(title, company, description, location):
+    # 1. Physical Location Check
     if not is_location_valid(location): return -1, []
     
-    title_clean, company_clean, desc_clean = str(title).lower(), str(company).lower(), str(description).lower()
+    title_clean = str(title).lower()
+    company_clean = str(company).lower()
+    desc_clean = str(description).lower()
+    full_text = f"{title_clean} {desc_clean}"
     
+    # 2. Hard Disqualifiers (Company, Title, and NOW Skills Blacklist)
     if any(item.lower() in company_clean for item in IGNORE_LIST): return -1, []
     if any(item.lower() in title_clean for item in TITLE_BLACKLIST): return -1, []
+    
+    # New: Skills Blacklist Check (Regex for whole-word matching)
+    for bad_skill in SKILLS_BLACKLIST:
+        if re.search(rf'\b{re.escape(bad_skill.lower())}\b', full_text):
+            return -1, []
 
-    text = f"{title_clean} {desc_clean}"
+    # 3. Positive Points Calculation
     found_skills, total_points = [], 0
     for skill, weight in SKILL_WEIGHTS.items():
-        if re.search(rf'\b{re.escape(skill.lower())}\b', text):
+        if re.search(rf'\b{re.escape(skill.lower())}\b', full_text):
             found_skills.append(skill)
             total_points += weight
 
+    # Scoring Formula:
+    # $$Score = \min\left(\frac{\text{Total Points}}{\text{Target Score}} \times 100, 100\right)$$
     score = min(round((total_points / TARGET_SCORE) * 100), 100)
     return score, found_skills
 
