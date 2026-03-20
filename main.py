@@ -53,23 +53,6 @@ TARGET_MARKETS = [
     {"country": "canada", "location": "Montreal"},
     {"country": "usa/ca", "location": "Remote"}
 ]
-
-def fetch_work_with_indies():
-    """Parses WWI RSS feed."""
-    print("🔍 Syncing with Work With Indies...")
-    feed = feedparser.parse("https://workwithindies.com/rss")
-    wwi_jobs = []
-    for entry in feed.entries:
-        if re.search(rf"({SEARCH_QUERY_STR})", entry.title, re.IGNORECASE):
-            wwi_jobs.append({
-                "title": entry.title,
-                "company": entry.author if 'author' in entry else "Indie Studio",
-                "job_url": entry.link,
-                "location": "Remote",
-                "description": entry.summary,
-                "site": "WWI"
-            })
-    return pd.DataFrame(wwi_jobs)
     
 def is_location_valid(job_location):
     loc = str(job_location).lower()
@@ -98,6 +81,54 @@ def analyze_job(title, company, description, location):
 
     score = min(round((total_points / TARGET_SCORE) * 100), 100)
     return score, found_skills
+
+def fetch_stable_feeds():
+    """Fetches jobs from sources that rarely block cloud IPs."""
+    stable_jobs = []
+    FEEDS = [
+        {"name": "WorkWithIndies", "url": "https://workwithindies.com/rss"},
+        {"name": "Remotive", "url": "https://remotive.com/remote-jobs/feed"},
+        {"name": "WWR", "url": "https://weworkremotely.com/categories/remote-programming-jobs.rss"}
+    ]
+
+    for feed_info in FEEDS:
+        print(f"📡 Syncing {feed_info['name']}...")
+        try:
+            feed = feedparser.parse(feed_info['url'])
+            for entry in feed.entries:
+                if re.search(rf"({SEARCH_QUERY_STR})", entry.title, re.IGNORECASE):
+                    stable_jobs.append({
+                        "title": entry.title,
+                        "company": entry.get('author', feed_info['name']),
+                        "job_url": entry.link,
+                        "location": "Remote",
+                        "description": entry.get('summary', ''),
+                        "site": feed_info['name']
+                    })
+        except Exception as e:
+            print(f"⚠️ Feed error on {feed_info['name']}: {e}")
+
+    # Hacker News Algolia API (Who is Hiring)
+    print("📡 Querying Hacker News API...")
+    try:
+        thirty_days_ago = int((datetime.now() - timedelta(days=30)).timestamp())
+        hn_url = f"https://hn.algolia.com/api/v1/search_by_date?query=Unity&tags=comment&numericFilters=created_at_i>{thirty_days_ago}"
+        response = requests.get(hn_url).json()
+        for hit in response['hits']:
+            # Look for hiring comments
+            text = hit.get('comment_text', '')
+            if "hiring" in text.lower() or "remote" in text.lower():
+                stable_jobs.append({
+                    "title": "HN Hiring Thread Listing",
+                    "company": "HN Startup",
+                    "job_url": f"https://news.ycombinator.com/item?id={hit['objectID']}",
+                    "location": "Remote",
+                    "description": text,
+                    "site": "HackerNews"
+                })
+    except: pass
+
+    return pd.DataFrame(stable_jobs)
 
 def get_days_ago(date_posted):
     if pd.isna(date_posted): return "New"
@@ -129,14 +160,12 @@ def send_email(html_content):
 
 def run_agent():
     all_results = []
-    
-    # 1. Expanded JobSpy (Includes Remotive & ZipRecruiter)
     markets = [{"country": "usa", "loc": "Remote"}, {"country": "canada", "loc": "Remote"}]
     for m in markets:
-        print(f"🔍 Scraping {m['country'].upper()} (LinkedIn, Indeed, Google, Zip Recruiter)...")
+        print(f"🔍 Scraping {m['country'].upper()} (LinkedIn, Indeed, Google)...")
         try:
             jobs = scrape_jobs(
-                site_name=["linkedin", "indeed", "google", "zip_recruiter"],
+                site_name=["linkedin", "indeed", "google"],
                 search_term=SEARCH_QUERY_JOBSPY,
                 location=m['loc'],
                 results_wanted=30,
@@ -150,7 +179,7 @@ def run_agent():
 
     # 2. Work With Indies
     try:
-        wwi_df = fetch_work_with_indies()
+        wwi_df = fetch_stable_feeds()
         if not wwi_df.empty: all_results.append(wwi_df)
     except Exception as e:
         print(f"⚠️ WWI error: {e}")
