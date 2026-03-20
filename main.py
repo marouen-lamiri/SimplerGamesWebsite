@@ -31,10 +31,10 @@ SKILL_WEIGHTS = {
     "Machine Learning": 1
 }
 SKILLS_BLACKLIST = [
-    "NFT", "Gambling", "Casino", "Slot", "Betting", "Unity Catalog"
+    "NFT", "Gambling", "Casino", "Slot", "Betting", "Unity Catalog", "Databricks"
     "Unpaid", "Equity Only", "Volunteer", "No Salary", "Internship"
 ]
-TARGET_SCORE = 15 # A "100%" match is 25 points
+TARGET_SCORE = 12 # A "100%" match is 12 points
 
 # --- NEW: STRICT GEOFENCING ---
 # Any job whose location string doesn't contain one of these will be ignored.
