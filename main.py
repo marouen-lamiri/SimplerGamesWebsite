@@ -55,23 +55,19 @@ TARGET_MARKETS = [
 ]
 
 def fetch_work_with_indies():
-    """Parses the Work With Indies RSS feed."""
-    print("🔍 Fetching Work With Indies feed...")
-    FEED_URL = "https://workwithindies.com/rss"
-    feed = feedparser.parse(FEED_URL)
-    
+    """Parses WWI RSS feed."""
+    print("🔍 Syncing with Work With Indies...")
+    feed = feedparser.parse("https://workwithindies.com/rss")
     wwi_jobs = []
     for entry in feed.entries:
-        # Simple regex check to see if the title matches your roles
         if re.search(rf"({SEARCH_QUERY_STR})", entry.title, re.IGNORECASE):
             wwi_jobs.append({
                 "title": entry.title,
                 "company": entry.author if 'author' in entry else "Indie Studio",
                 "job_url": entry.link,
-                "location": "Remote", # WWI is 95% remote, geofence will catch others
+                "location": "Remote",
                 "description": entry.summary,
-                "date_posted": entry.published if 'published' in entry else None,
-                "site": "WorkWithIndies"
+                "site": "WWI"
             })
     return pd.DataFrame(wwi_jobs)
     
@@ -82,32 +78,24 @@ def is_location_valid(job_location):
     return False
     
 def analyze_job(title, company, description, location):
-    # 1. Physical Location Check
+    # 1. Location check
     if not is_location_valid(location): return -1, []
     
-    title_clean = str(title).lower()
-    company_clean = str(company).lower()
-    desc_clean = str(description).lower()
+    title_clean, company_clean, desc_clean = str(title).lower(), str(company).lower(), str(description).lower()
     full_text = f"{title_clean} {desc_clean}"
     
-    # 2. Hard Disqualifiers (Company, Title, and NOW Skills Blacklist)
+    # 2. Blacklist checks
     if any(item.lower() in company_clean for item in IGNORE_LIST): return -1, []
     if any(item.lower() in title_clean for item in TITLE_BLACKLIST): return -1, []
-    
-    # New: Skills Blacklist Check (Regex for whole-word matching)
-    for bad_skill in SKILLS_BLACKLIST:
-        if re.search(rf'\b{re.escape(bad_skill.lower())}\b', full_text):
-            return -1, []
+    if any(re.search(rf'\b{re.escape(bad.lower())}\b', full_text) for bad in SKILLS_BLACKLIST): return -1, []
 
-    # 3. Positive Points Calculation
+    # 3. Points
     found_skills, total_points = [], 0
     for skill, weight in SKILL_WEIGHTS.items():
         if re.search(rf'\b{re.escape(skill.lower())}\b', full_text):
             found_skills.append(skill)
             total_points += weight
 
-    # Scoring Formula:
-    # $$Score = \min\left(\frac{\text{Total Points}}{\text{Target Score}} \times 100, 100\right)$$
     score = min(round((total_points / TARGET_SCORE) * 100), 100)
     return score, found_skills
 
@@ -142,15 +130,16 @@ def send_email(html_content):
 def run_agent():
     all_results = []
     
-    # 1. Fetch from JobSpy (LinkedIn, Indeed, Google)
+    # 1. Expanded JobSpy (Includes Remotive & ZipRecruiter)
     markets = [{"country": "usa", "loc": "Remote"}, {"country": "canada", "loc": "Remote"}]
     for m in markets:
+        print(f"🔍 Scraping {m['country'].upper()} (LinkedIn, Indeed, Google, Remotive)...")
         try:
             jobs = scrape_jobs(
-                site_name=["linkedin", "indeed", "google"],
+                site_name=["linkedin", "indeed", "google", "remotive", "zip_recruiter"],
                 search_term=SEARCH_QUERY_JOBSPY,
                 location=m['loc'],
-                results_wanted=20,
+                results_wanted=30,
                 hours_old=72,
                 country_indeed=m['country'],
                 is_remote=True
@@ -159,7 +148,7 @@ def run_agent():
         except Exception as e:
             print(f"⚠️ JobSpy error: {e}")
 
-    # 2. Fetch from Work With Indies
+    # 2. Work With Indies
     try:
         wwi_df = fetch_work_with_indies()
         if not wwi_df.empty: all_results.append(wwi_df)
@@ -167,16 +156,18 @@ def run_agent():
         print(f"⚠️ WWI error: {e}")
 
     if not all_results:
-        print("No jobs found today.")
+        print("📭 No jobs found today.")
         return
 
     combined_jobs = pd.concat(all_results).drop_duplicates(subset=['job_url'])
     processed_listings = []
 
     for _, row in combined_jobs.iterrows():
-        score, found_skills = analyze_job(row['title'], row['company'], row.get('description', ''), row.get('location', 'Remote'))
-        if score >= 30: 
-            processed_listings.append({**row, "score": score, "skills": found_skills, "days_ago": "Recent"})
+        score, found_skills = analyze_job(
+            row['title'], row['company'], row.get('description', ''), row.get('location', 'Remote')
+        )
+        if score >= 35: # Quality threshold
+            processed_listings.append({**row, "score": score, "skills": found_skills})
     
     processed_listings.sort(key=lambda x: x['score'], reverse=True)
 
