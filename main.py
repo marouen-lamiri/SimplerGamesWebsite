@@ -197,7 +197,7 @@ def run_agent():
         <div style="background: #121212; padding: 20px; font-family: sans-serif;">
             <div style="max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #ffffff; margin-bottom: 5px;">Job Search</h2>
-                <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Tracking <b>{SEARCH_QUERY}</b> in USA, Canada, & Worldwide</p>
+                <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Tracking <b>{SEARCH_QUERY_JOBSPY}</b> in USA, Canada, & Worldwide</p>
                 {job_cards_html if job_cards_html else '<p style="color:#888;">No high-value global leads found today.</p>'}
             </div>
         </div>
