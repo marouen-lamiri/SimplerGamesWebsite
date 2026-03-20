@@ -133,10 +133,10 @@ def run_agent():
     # 1. Expanded JobSpy (Includes Remotive & ZipRecruiter)
     markets = [{"country": "usa", "loc": "Remote"}, {"country": "canada", "loc": "Remote"}]
     for m in markets:
-        print(f"🔍 Scraping {m['country'].upper()} (LinkedIn, Indeed, Google, Remotive)...")
+        print(f"🔍 Scraping {m['country'].upper()} (LinkedIn, Indeed, Google, Zip Recruiter)...")
         try:
             jobs = scrape_jobs(
-                site_name=["linkedin", "indeed", "google", "remotive", "zip_recruiter"],
+                site_name=["linkedin", "indeed", "google", "zip_recruiter"],
                 search_term=SEARCH_QUERY_JOBSPY,
                 location=m['loc'],
                 results_wanted=30,
