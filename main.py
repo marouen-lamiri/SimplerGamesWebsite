@@ -167,60 +167,72 @@ def send_email(html_content, count):  # <-- Added 'count' here
         print(f"❌ Email failed: {e}")
 
 def generate_html_report(processed_listings):
-    """Converts the list of scored jobs into a high-end Dark Mode HTML report."""
+    """Premium Dark Mode report with Source Website and 'Apply' button."""
     
-    # Header Section
+    # Header
     report_html = f"""
-    <div style="background-color: #0a0a0a; color: #ffffff; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div style="background-color: #050505; color: #ffffff; padding: 20px; font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;">
         <div style="max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #00ffa3; font-size: 24px; margin-bottom: 5px;">Unity Talent Intelligence</h1>
-            <p style="color: #888; font-size: 14px; margin-top: 0;">{len(processed_listings)} high-value leads identified for {datetime.now().strftime('%B %d, %Y')}</p>
-            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="color: #00ffa3; font-size: 22px; margin-bottom: 2px; letter-spacing: -0.5px;">Simpler Intelligence</h1>
+                    <p style="color: #666; font-size: 12px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px;">
+                        {len(processed_listings)} Scored Opportunities • {datetime.now().strftime('%d %b %Y')}
+                    </p>
+                </div>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #1a1a1a; margin: 20px 0;">
     """
 
-    # Job Cards Loop
     for job in processed_listings:
-        # Highlight top-tier matches with a glowing border
-        border_color = "#00ffa3" if job['score'] >= 80 else "#222"
+        # Visual cues for high-quality matches
+        is_hot = job['score'] >= 80
+        glow_style = "box-shadow: 0 0 15px rgba(0, 255, 163, 0.1);" if is_hot else ""
+        border_style = "2px solid #00ffa3" if is_hot else "1px solid #222"
         
-        # Format the skills as small "chips"
-        skills_chips = "".join([
-            f'<span style="background: #111; color: #00ffa3; padding: 3px 8px; border-radius: 4px; margin-right: 5px; font-size: 11px; border: 1px solid #333; display: inline-block; margin-bottom: 4px;">{skill}</span>' 
-            for skill in job['skills']
+        # Skill chips
+        skills_html = "".join([
+            f'<span style="background: #111; color: #eee; padding: 3px 8px; border-radius: 4px; margin-right: 5px; font-size: 10px; border: 1px solid #333; display: inline-block; margin-bottom: 5px;">{s}</span>' 
+            for s in job['skills']
         ])
 
+        # Extract site name (e.g., 'LinkedIn', 'WWI', 'Google')
+        site_name = job.get('site', 'Direct')
+
         report_html += f"""
-            <div style="background: #161616; border: 1px solid {border_color}; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+            <div style="background: #0f0f0f; border: {border_style}; border-radius: 12px; padding: 20px; margin-bottom: 16px; {glow_style}">
                 <table width="100%" cellspacing="0" cellpadding="0">
                     <tr>
                         <td style="vertical-align: top;">
-                            <h2 style="margin: 0; font-size: 18px; color: #ffffff;">{job['title']}</h2>
-                            <p style="margin: 5px 0; color: #00ffa3; font-size: 13px; font-weight: bold;">
-                                {job['company']} 
-                                <span style="color: #555; font-weight: normal; margin-left: 5px;">• {job['location']}</span>
+                            <h2 style="margin: 0; font-size: 17px; color: #ffffff; font-weight: 600;">{job['title']}</h2>
+                            <p style="margin: 6px 0; color: #888; font-size: 13px;">
+                                <strong style="color: #fff;">{job['company']}</strong> • {job.get('location', 'Remote')}
                             </p>
+                            <div style="margin-top: 4px;">
+                                <span style="color: #00ffa3; font-size: 11px; background: rgba(0, 255, 163, 0.1); padding: 2px 6px; border-radius: 3px; font-weight: bold; text-transform: uppercase;">
+                                    {site_name}
+                                </span>
+                            </div>
                         </td>
                         <td style="vertical-align: top; text-align: right; width: 60px;">
-                            <div style="color: #00ffa3; font-size: 22px; font-weight: bold;">{job['score']}%</div>
-                            <div style="font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: 1px;">Match</div>
+                            <div style="color: #00ffa3; font-size: 20px; font-weight: 800;">{job['score']}%</div>
+                            <div style="font-size: 9px; color: #444; text-transform: uppercase; font-weight: bold;">Match</div>
                         </td>
                     </tr>
                 </table>
                 
-                <div style="margin: 15px 0;">
-                    {skills_chips}
+                <div style="margin: 15px 0 10px 0;">
+                    {skills_html}
                 </div>
                 
-                <table width="100%" cellspacing="0" cellpadding="0" style="margin-top: 10px;">
+                <table width="100%" cellspacing="0" cellpadding="0" style="margin-top: 10px; border-top: 1px solid #1a1a1a; padding-top: 15px;">
                     <tr>
-                        <td>
-                            <span style="background: #222; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 10px; text-transform: uppercase;">
-                                Source: {job.get('origin_tag', 'Direct')}
-                            </span>
+                        <td style="color: #444; font-size: 10px; font-weight: bold; text-transform: uppercase;">
+                            Market: {job.get('origin_tag', 'Global')}
                         </td>
                         <td style="text-align: right;">
-                            <a href="{job['job_url']}" style="background-color: #00ffa3; color: #000000; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-block;">
-                                View Position →
+                            <a href="{job['job_url']}" style="background-color: #00ffa3; color: #000; padding: 9px 20px; border-radius: 6px; text-decoration: none; font-weight: 800; font-size: 12px; display: inline-block; transition: all 0.2s ease;">
+                                Apply Now →
                             </a>
                         </td>
                     </tr>
@@ -228,16 +240,15 @@ def generate_html_report(processed_listings):
             </div>
         """
 
-    # Footer Section
     report_html += """
-            <p style="text-align: center; color: #444; font-size: 11px; margin-top: 30px;">
-                Automated Intelligence by Simpler Games Agent. <br>
-                Targeting: Lead/Senior Unity Roles in Canada & USA.
-            </p>
+            <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #1a1a1a;">
+                <p style="color: #333; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
+                    Simpler Games • Unity Talent Pipeline
+                </p>
+            </div>
         </div>
     </div>
     """
-    
     return report_html
 
 def run_agent():
