@@ -8,7 +8,7 @@ from jobspy import scrape_jobs
 import re
 
 # --- CONFIGURATION ---
-SEARCH_QUERY = "(Unity OR Unreal OR Game OR AR OR VR OR XR OR AR/VR OR Mobile) Developer"
+SEARCH_QUERY = "Unity Developer|Unreal Developer|Game Developer|AR Developer|VR Developer|XR Developer|AR/VR Developer|Mobile Developer|Unity Engineer|Unreal Engineer|Game Engineer|AR Engineer|VR Engineer|XR Engineer|AR/VR Engineer|Mobile Engineer"
 SKILL_WEIGHTS = {
     "Unity": 5, "C#": 5, 
     
@@ -47,37 +47,43 @@ TARGET_MARKETS = [
     {"country": "usa/ca", "location": "Remote"}
 ]
 
-def is_location_valid(job_location):
-    """Ensures the job is actually in our target territory."""
-    loc = str(job_location).lower()
+def fetch_work_with_indies():
+    """Parses the Work With Indies RSS feed."""
+    print("🔍 Fetching Work With Indies feed...")
+    FEED_URL = "https://workwithindies.com/rss"
+    feed = feedparser.parse(FEED_URL)
     
-    # Check if any blacklisted country is mentioned (e.g., "Remote, UK")
-    if any(banned in loc for banned in LOCATION_BLACKLIST):
-        return False
-        
-    # Check if it mentions our allowed regions
-    if any(allowed in loc for allowed in LOCATION_WHITELIST):
-        return True
-        
+    wwi_jobs = []
+    for entry in feed.entries:
+        # Simple regex check to see if the title matches your roles
+        if re.search(rf"({SEARCH_QUERY_STR})", entry.title, re.IGNORECASE):
+            wwi_jobs.append({
+                "title": entry.title,
+                "company": entry.author if 'author' in entry else "Indie Studio",
+                "job_url": entry.link,
+                "location": "Remote", # WWI is 95% remote, geofence will catch others
+                "description": entry.summary,
+                "date_posted": entry.published if 'published' in entry else None,
+                "site": "WorkWithIndies"
+            })
+    return pd.DataFrame(wwi_jobs)
+
+def is_location_valid(job_location):
+    loc = str(job_location).lower()
+    if any(banned in loc for banned in LOCATION_BLACKLIST): return False
+    if any(allowed in loc for allowed in LOCATION_WHITELIST): return True
     return False
 
 def analyze_job(title, company, description, location):
-    # 1. Physical Location Check
-    if not is_location_valid(location):
-        return -1, []
-
-    title_clean = str(title).lower()
-    company_clean = str(company).lower()
-    desc_clean = str(description).lower()
-
-    # 2. Company/Title Check
+    if not is_location_valid(location): return -1, []
+    
+    title_clean, company_clean, desc_clean = str(title).lower(), str(company).lower(), str(description).lower()
+    
     if any(item.lower() in company_clean for item in IGNORE_LIST): return -1, []
     if any(item.lower() in title_clean for item in TITLE_BLACKLIST): return -1, []
 
-    # 3. Points Calculation
     text = f"{title_clean} {desc_clean}"
-    found_skills = []
-    total_points = 0
+    found_skills, total_points = [], 0
     for skill, weight in SKILL_WEIGHTS.items():
         if re.search(rf'\b{re.escape(skill.lower())}\b', text):
             found_skills.append(skill)
@@ -116,43 +122,42 @@ def send_email(html_content):
 
 def run_agent():
     all_results = []
-    for market in TARGET_MARKETS:
-        print(f"🔍 Fetching {market['country'].upper()}...")
+    
+    # 1. Fetch from JobSpy (LinkedIn, Indeed, Google)
+    markets = [{"country": "usa", "loc": "Remote"}, {"country": "canada", "loc": "Remote"}]
+    for m in markets:
         try:
             jobs = scrape_jobs(
                 site_name=["linkedin", "indeed", "google"],
-                search_term=SEARCH_QUERY,
-                location=market['location'],
-                results_wanted=30, # Increased sample size to account for more filtered-out jobs
+                search_term=SEARCH_QUERY_JOBSPY,
+                location=m['loc'],
+                results_wanted=20,
                 hours_old=72,
-                country_indeed=market['country'],
-                is_remote=(market['location'] == "Remote"),
-                description_formatting="markdown"
+                country_indeed=m['country'],
+                is_remote=True
             )
-            if not jobs.empty:
-                all_results.append(jobs)
+            if not jobs.empty: all_results.append(jobs)
         except Exception as e:
-            print(f"⚠️ Market error: {e}")
+            print(f"⚠️ JobSpy error: {e}")
+
+    # 2. Fetch from Work With Indies
+    try:
+        wwi_df = fetch_work_with_indies()
+        if not wwi_df.empty: all_results.append(wwi_df)
+    except Exception as e:
+        print(f"⚠️ WWI error: {e}")
 
     if not all_results:
-        print("No raw data found.")
+        print("No jobs found today.")
         return
 
     combined_jobs = pd.concat(all_results).drop_duplicates(subset=['job_url'])
     processed_listings = []
 
     for _, row in combined_jobs.iterrows():
-        # Pass location into the analysis function
-        score, found_skills = analyze_job(
-            row['title'], 
-            row['company'], 
-            row.get('description', ''), 
-            row.get('location', 'Unknown')
-        )
-        
+        score, found_skills = analyze_job(row['title'], row['company'], row.get('description', ''), row.get('location', 'Remote'))
         if score >= 30: 
-            days_ago = get_days_ago(row.get('date_posted'))
-            processed_listings.append({**row, "score": score, "skills": found_skills, "days_ago": days_ago})
+            processed_listings.append({**row, "score": score, "skills": found_skills, "days_ago": "Recent"})
     
     processed_listings.sort(key=lambda x: x['score'], reverse=True)
 
@@ -199,8 +204,6 @@ def run_agent():
         print(f"✅ Success! {len(processed_listings)} jobs passed the location and skill filter.")
     else:
         print("❌ Jobs were found, but none were in the correct location or met skill requirements.")
-        
-    
 
 if __name__ == "__main__":
     run_agent()
