@@ -88,7 +88,8 @@ def fetch_stable_feeds():
     FEEDS = [
         {"name": "WorkWithIndies", "url": "https://workwithindies.com/rss"},
         {"name": "Remotive", "url": "https://remotive.com/remote-jobs/feed"},
-        {"name": "WWR", "url": "https://weworkremotely.com/categories/remote-programming-jobs.rss"}
+        {"name": "WWR", "url": "https://weworkremotely.com/categories/remote-programming-jobs.rss"},
+        {"name": "GamesCareer", "url": "https://www.games-career.com/FeedsRss/job-offers-programmer.xml"}
     ]
 
     for feed_info in FEEDS:
