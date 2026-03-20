@@ -1,5 +1,6 @@
 import os
 import smtplib
+import feedparser 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timezone
