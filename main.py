@@ -31,7 +31,7 @@ SKILL_WEIGHTS = {
     "Machine Learning": 1
 }
 SKILLS_BLACKLIST = [
-    "NFT",, "Gambling", "Casino", "Slot", "Betting", "Unity Catalog"
+    "NFT", "Gambling", "Casino", "Slot", "Betting", "Unity Catalog"
     "Unpaid", "Equity Only", "Volunteer", "No Salary", "Internship"
 ]
 TARGET_SCORE = 15 # A "100%" match is 25 points
