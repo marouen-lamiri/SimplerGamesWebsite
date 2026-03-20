@@ -140,23 +140,31 @@ def get_days_ago(date_posted):
     except:
         return "Recent"
 
-def send_email(html_content):
+def send_email(html_content, count):  # <-- Added 'count' here
     sender = os.getenv("EMAIL_SENDER")
     receiver = os.getenv("EMAIL_RECEIVER")
     password = os.getenv("EMAIL_PASSWORD")
     
+    if not all([sender, receiver, password]):
+        print("❌ Missing Email Env Vars. Check your GitHub Secrets.")
+        return
+
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"🌍 Global Remote Job Report: {datetime.now().strftime('%b %d')}"
+    # Now we can use the 'count' in the subject line!
+    msg["Subject"] = f"🎯 {count} High-Value Leads: {datetime.now().strftime('%b %d')}"
     msg["From"] = sender
     msg["To"] = receiver
+    
     msg.attach(MIMEText(html_content, "html"))
 
     try:
+        # Use port 465 for SMTP_SSL
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender, password)
             server.sendmail(sender, receiver, msg.as_string())
+        print(f"✅ Email dispatched with {count} jobs.")
     except Exception as e:
-        print(f"Failed to send email: {e}")
+        print(f"❌ Email failed: {e}")
 
 def generate_html_report(processed_listings):
     """Converts the list of scored jobs into a high-end Dark Mode HTML report."""
