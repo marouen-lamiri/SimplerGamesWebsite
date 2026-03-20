@@ -41,7 +41,7 @@ TARGET_MARKETS = [
     {"country": "usa", "location": "Remote"},
     {"country": "canada", "location": "Remote"},
     {"country": "canada", "location": "Montreal"},
-    {"country": "us/ca", "location": "Remote"}
+    {"country": "usa/ca", "location": "Remote"}
 ]
 
 def analyze_job(title, company, description):
