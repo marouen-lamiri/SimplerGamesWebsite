@@ -21,7 +21,7 @@ SKILL_WEIGHTS = {
     "Unreal": 3, ".Net": 3, "Photon": 3, "WebGL": 3,
     
     # Silver Tier (1 point)
-    "Git": 1, "Perforce": 1, "iOS": 1, , "Optimization": 1,
+    "Git": 1, "Perforce": 1, "iOS": 1, "Optimization": 1,
     "Addressables": 1, "Unit Testing": 1, "Python": 1, "Java": 1,
     "JavaScript" : 1, "OpenGL": 1, "PHP": 1, "Normcore": 1, 
     "Multiplayer": 1, "Unity Package Manager": 1, "UPM": 1,
