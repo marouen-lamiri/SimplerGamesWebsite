@@ -9,6 +9,8 @@ import re
 
 # --- CONFIGURATION ---
 SEARCH_QUERY = "Unity Developer|Unreal Developer|Game Developer|AR Developer|VR Developer|XR Developer|AR/VR Developer|Mobile Developer|Unity Engineer|Unreal Engineer|Game Engineer|AR Engineer|VR Engineer|XR Engineer|AR/VR Engineer|Mobile Engineer"
+SEARCH_QUERY_JOBSPY = f"({SEARCH_QUERY_STR.replace('|', ' OR ')})"
+
 SKILL_WEIGHTS = {
     "Unity": 5, "C#": 5, 
     
