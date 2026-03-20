@@ -8,7 +8,7 @@ from jobspy import scrape_jobs
 import re
 
 # --- CONFIGURATION ---
-SEARCH_QUERY = "(Unity Developer OR Unreal Developer OR Game Developer OR AR Developer OR VR Developer OR XR Developer OR AR/VR Developer OR Mobile Developer)"
+SEARCH_QUERY = "(Unity OR Unreal OR Game OR AR OR VR OR XR OR AR/VR OR Mobile) Developer"
 SKILL_WEIGHTS = {
     # Platinum Tier (5 points)
     "Unity": 5, "C#": 5, 
@@ -39,7 +39,7 @@ LOCATION_WHITELIST = ["usa", "united states", "america", "canada", "ca", "montre
 LOCATION_BLACKLIST = ["uk", "united kingdom", "india", "germany", "europe", "brazil", "asia"]
 
 IGNORE_LIST = ["CyberCoders", "Jobot", "BairesDev", "Toptal", "Staffing"]
-TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate"]
+TITLE_BLACKLIST = ["Intern", "Junior", "Associate", "Student", "Graduate", "Artist"]
 
 # Define the targets: (Country Code for Indeed/Glassdoor, Location string)
 # "Remote" as a location usually triggers "Remote Anywhere/Worldwide" on LinkedIn/Google
