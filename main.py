@@ -1,13 +1,14 @@
 import os
-import requests
-from bs4 import BeautifulSoup
-import time
-import random
-import urllib.parseimport smtplib
+import smtplib
 import feedparser 
+import requests                  # <--- Required for Remote Rocketship
+from bs4 import BeautifulSoup    # <--- Required for Remote Rocketship
+import time                      # <--- Required for delays
+import random                    # <--- Required for delays
+import urllib.parse              # <--- Required for URL encoding
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import pandas as pd
 from jobspy import scrape_jobs
 import re
