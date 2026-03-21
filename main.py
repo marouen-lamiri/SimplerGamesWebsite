@@ -86,6 +86,7 @@ def fetch_stable_feeds():
     """Fetches jobs from sources that rarely block cloud IPs."""
     stable_jobs = []
     FEEDS = [
+        {"name": "RemoteGameJobs", "url": "https://remotegamejobs.com/feed"},
         {"name": "WorkWithIndies", "url": "https://workwithindies.com/rss"},
         {"name": "Remotive", "url": "https://remotive.com/remote-jobs/feed"},
         {"name": "WWR", "url": "https://weworkremotely.com/categories/remote-programming-jobs.rss"},
