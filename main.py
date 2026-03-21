@@ -1,5 +1,9 @@
 import os
-import smtplib
+import requests
+from bs4 import BeautifulSoup
+import time
+import random
+import urllib.parseimport smtplib
 import feedparser 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
