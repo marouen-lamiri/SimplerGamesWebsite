@@ -93,7 +93,9 @@ def fetch_stable_feeds():
         {"name": "WorkWithIndies", "url": "https://workwithindies.com/rss"},
         {"name": "Remotive", "url": "https://remotive.com/remote-jobs/feed"},
         {"name": "WWR", "url": "https://weworkremotely.com/categories/remote-programming-jobs.rss"},
-        {"name": "GamesCareer", "url": "https://www.games-career.com/FeedsRss/job-offers-programmer.xml"}
+        {"name": "GamesCareer", "url": "https://www.games-career.com/FeedsRss/job-offers-programmer.xml"},
+        {"name": "AuthenticJobs", "url": "https://authenticjobs.com/feed/"},
+        {"name": "PocketGamer", "url": "https://www.pocketgamer.biz/feeds/jobs/"}
     ]
 
     for feed_info in FEEDS:
