@@ -137,6 +137,48 @@ def fetch_stable_feeds():
 
     return pd.DataFrame(stable_jobs)
 
+def scrape_remote_rocketship(query_str):
+    """Scrapes job listings from Remote Rocketship by iterating over each keyword."""
+    base_url = "https://www.remoterocketship.com/search"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+    all_jobs = []
+    
+    # Split the piped string into individual keywords
+    keywords = [k.strip() for k in query_str.split('|')]
+    
+    for kw in keywords:
+        print(f"🚀 Scraping Remote Rocketship for: {kw}...")
+        try:
+            params = {"query": kw, "sort": "date"}
+            response = requests.get(base_url, params=params, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                job_cards = soup.select('div[class*="JobCard"]') 
+                
+                for card in job_cards:
+                    title_elem = card.select_one('h2, h3')
+                    company_elem = card.select_one('div[class*="CompanyName"], a[href*="/company/"]')
+                    link_elem = card.select_one('a[href*="/jobs/"]')
+                    
+                    if title_elem and link_elem:
+                        all_jobs.append({
+                            "title": title_elem.get_text(strip=True),
+                            "company": company_elem.get_text(strip=True) if company_elem else "Unknown",
+                            "job_url": f"https://www.remoterocketship.com{link_elem['href']}" if link_elem['href'].startswith('/') else link_elem['href'],
+                            "location": "Remote",
+                            "site": "RemoteRocketship",
+                            "description": "" # Descriptions are usually on the sub-page
+                        })
+            
+            # Anti-rate-limiting delay between keywords
+            time.sleep(random.uniform(2, 4))
+            
+        except Exception as e:
+            print(f"⚠️ Remote Rocketship Error for '{kw}': {e}")
+            
+    return pd.DataFrame(all_jobs)
+
 def get_days_ago(date_posted):
     if pd.isna(date_posted): return "New"
     try:
@@ -297,6 +339,11 @@ def run_agent():
     if not feed_jobs.empty: 
         feed_jobs['market_tag'] = "Global/StableFeed"
         all_data.append(feed_jobs)
+
+    rocket_jobs = scrape_remote_rocketship(SEARCH_QUERY_JOBSPY)
+    if not rocket_jobs.empty:
+        rocket_jobs['market_tag'] = "RemoteRocketship"
+        all_data.append(rocket_jobs)
 
     if not all_data:
         print("📭 No jobs found from any source today.")
