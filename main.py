@@ -340,7 +340,7 @@ def run_agent():
         feed_jobs['market_tag'] = "Global/StableFeed"
         all_data.append(feed_jobs)
 
-    rocket_jobs = scrape_remote_rocketship(SEARCH_QUERY_JOBSPY)
+    rocket_jobs = scrape_remote_rocketship(SEARCH_QUERY_STR)
     if not rocket_jobs.empty:
         rocket_jobs['market_tag'] = "RemoteRocketship"
         all_data.append(rocket_jobs)
