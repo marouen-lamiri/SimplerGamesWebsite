@@ -312,7 +312,7 @@ def run_agent():
             is_remote_search = True if "remote" in market['location'].lower() else False
             
             jobs = scrape_jobs(
-                site_name=["linkedin", "google", "indeed", "zip_recruiter", "naukri", "glassdoor"],
+                site_name=["linkedin", "google", "indeed"],
                 search_term=SEARCH_QUERY_JOBSPY,
                 location=market['location'],
                 results_wanted=25,
