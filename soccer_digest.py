@@ -63,8 +63,8 @@ TRANSFER_KEYWORDS = [
 
 JUVENTUS_KEYWORDS = ["juventus", "juve", "bianconeri", "old lady"]
 
-LOOKBACK_HOURS = float(os.environ.get("LOOKBACK_HOURS", "13"))
-MAX_ITEMS_PER_SECTION = int(os.environ.get("MAX_ITEMS_PER_SECTION", "20"))
+LOOKBACK_HOURS = float(os.environ.get("LOOKBACK_HOURS") or "13")
+MAX_ITEMS_PER_SECTION = int(os.environ.get("MAX_ITEMS_PER_SECTION") or "20")
 
 # AI summary settings. Set ANTHROPIC_API_KEY to enable; if it's missing (or
 # the call fails for any reason) the script just falls back to the plain
@@ -290,8 +290,8 @@ def send_email(subject, html_body, text_body):
     # SMTP host/port aren't secrets by default — Gmail's are used unless
     # overridden. Override via repo *variables* (not secrets) if you use a
     # different provider, e.g. Outlook: smtp-mail.outlook.com / 587.
-    smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+    smtp_host = os.environ.get("SMTP_HOST") or "smtp.gmail.com"
+    smtp_port = int(os.environ.get("SMTP_PORT") or "587")
     email_sender = os.environ["EMAIL_SENDER"]
     email_password = os.environ["EMAIL_PASSWORD"]
     email_receiver = os.environ["EMAIL_RECEIVER"]  # comma-separated list allowed
