@@ -2,3 +2,5 @@ python-jobspy
 feedparser
 requests
 pandas
+feedparser==6.0.11
+anthropic==0.69.0
